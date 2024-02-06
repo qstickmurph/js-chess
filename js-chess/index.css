@@ -1,6 +1,8 @@
 :root {
-    --light-bg: #964d22;
-    --dark-bg: #eedc97;
+    --dark-bg: #964d22;
+    --light-bg: #eedc97;
+    --dark-bg-hl: #ddc932;
+    --light-bg-hl: #ddc932;
     --light-coords: #eee;
     --dark-coords: #000;
 }
@@ -16,13 +18,20 @@ body {
     width: 100%;
 }
 
-.chess-grid{
+.chess-board {
     width: 40%;
     height: 40%;
     margin: 0px auto;
     display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: repeat(8, 1fr); 
+}
+
+.chess-rank {
+    width: 100%;
+    display: grid;
     grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
+    grid-template-rows: auto;
 }
 
 .chess-square{
@@ -35,13 +44,21 @@ body {
 }
 
 .chess-square.dark{
-    background-color: var(--light-bg);
+    background-color: var(--dark-bg);
     color: var(--dark-coords);
 }
 
 .chess-square.light{
-    background-color: var(--dark-bg);
+    background-color: var(--light-bg);
     color: var(--light-coords);
+}
+
+.chess-square.dark.highlighted {
+    background-color: var(--dark-bg-hl);
+}
+
+.chess-square.light.highlighted {
+    background-color: var(--light-bg-hl);
 }
 
 .chess-square .piece-icon {

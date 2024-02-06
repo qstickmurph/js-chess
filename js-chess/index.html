@@ -1,78 +1,94 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <link rel="stylesheet" href="index.css">
-    <script type="text/javascript" src="chess.js"></script>
-    <title>Chess</title>
-</head>
-<body onload="load_page()">
-    <div class="chess-container">
-        <div class="chess-grid">
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
-            <div class="chess-square dark"></div>
-            <div class="chess-square light"></div>
+    <head>
+        <link rel="stylesheet" href="index.css">
+        <script type="text/javascript" src="chess.js"></script>
+        <title>Chess</title>
+    </head>
+    <body onload="load_page()">
+        <div class="chess-container">
+            <div class="chess-board">
+                <div class="chess-rank 1">
+                    <div class="chess-square light 11"></div>
+                    <div class="chess-square dark 12"></div>
+                    <div class="chess-square light 13"></div>
+                    <div class="chess-square dark 14"></div>
+                    <div class="chess-square light 15"></div>
+                    <div class="chess-square dark 16"></div>
+                    <div class="chess-square light 17"></div>
+                    <div class="chess-square dark 18"></div>
+                </div>
+                <div class="chess-rank 2">
+                    <div class="chess-square light 21"></div>
+                    <div class="chess-square dark 22"></div>
+                    <div class="chess-square light 23"></div>
+                    <div class="chess-square dark 24"></div>
+                    <div class="chess-square light 25"></div>
+                    <div class="chess-square dark 26"></div>
+                    <div class="chess-square light 27"></div>
+                    <div class="chess-square dark 28"></div>
+                </div>
+                <div class="chess-rank 3">
+                    <div class="chess-square light 31"></div>
+                    <div class="chess-square dark 32"></div>
+                    <div class="chess-square light 33"></div>
+                    <div class="chess-square dark 34"></div>
+                    <div class="chess-square light 35"></div>
+                    <div class="chess-square dark 36"></div>
+                    <div class="chess-square light 37"></div>
+                    <div class="chess-square dark 38"></div>
+                </div>
+                <div class="chess-rank 4">
+                    <div class="chess-square light 41"></div>
+                    <div class="chess-square dark 42"></div>
+                    <div class="chess-square light 43"></div>
+                    <div class="chess-square dark 44"></div>
+                    <div class="chess-square light 45"></div>
+                    <div class="chess-square dark 46"></div>
+                    <div class="chess-square light 47"></div>
+                    <div class="chess-square dark 48"></div>
+                </div>
+                <div class="chess-rank 5">
+                    <div class="chess-square light 51"></div>
+                    <div class="chess-square dark 52"></div>
+                    <div class="chess-square light 53"></div>
+                    <div class="chess-square dark 54"></div>
+                    <div class="chess-square light 55"></div>
+                    <div class="chess-square dark 56"></div>
+                    <div class="chess-square light 57"></div>
+                    <div class="chess-square dark 58"></div>
+                </div>
+                <div class="chess-rank 6">
+                    <div class="chess-square light 61"></div>
+                    <div class="chess-square dark 62"></div>
+                    <div class="chess-square light 63"></div>
+                    <div class="chess-square dark 64"></div>
+                    <div class="chess-square light 65"></div>
+                    <div class="chess-square dark 66"></div>
+                    <div class="chess-square light 67"></div>
+                    <div class="chess-square dark 68"></div>
+                </div>
+                <div class="chess-rank 7">
+                    <div class="chess-square light 71"></div>
+                    <div class="chess-square dark 72"></div>
+                    <div class="chess-square light 73"></div>
+                    <div class="chess-square dark 74"></div>
+                    <div class="chess-square light 75"></div>
+                    <div class="chess-square dark 76"></div>
+                    <div class="chess-square light 77"></div>
+                    <div class="chess-square dark 78"></div>
+                </div>
+                <div class="chess-rank 8">
+                    <div class="chess-square light 81"></div>
+                    <div class="chess-square dark 82"></div>
+                    <div class="chess-square light 83"></div>
+                    <div class="chess-square dark 84"></div>
+                    <div class="chess-square light 85"></div>
+                    <div class="chess-square dark 86"></div>
+                    <div class="chess-square light 87"></div>
+                    <div class="chess-square dark 88"></div>
+                </div>
+            </div>
         </div>
-    </div>
-</body>
+    </body>
 </html>

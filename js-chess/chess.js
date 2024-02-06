@@ -1,4 +1,4 @@
-chess_squares = document.getElementsByClassName("chess-square");
+// Constant Enums
 const CHESS_PIECE = Object.freeze({
     NOTHING: 0,
     WHITE_KING: 1,
@@ -20,21 +20,54 @@ const COLOR = Object.freeze({
     BLACK: 1
 })
 
+// Global Variables
+let position = 
+[
+    CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
+    CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,  CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN, 
+    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+    CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN, 
+    CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
+];
 
-function load_page(){
-    let starting_positions = 
-    [
-        CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
-        CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,  CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN, 
-        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-        CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN, 
-        CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
-    ];
-    show_position(starting_positions);
-    chess_game_loop();
+// Functions
+
+function load_page() {
+    create_board();
+    chess_board.setAttribute("width", "1000px");
+    set_element_vars();
+    show_position(position);
+    turn = COLOR.WHITE;
+    add_square_listeners();
+}
+
+function create_board() {
+    let color = "light";
+    for( let i = 1; i <= 8; i++) {
+        rank = document.createElement("div");
+        rank.setAttribute("class", "chess-rank " + i);
+        for( let j = 1; j <= 8; j++) {
+            square = document.createElement("div");
+            square.setAttribute("class", "chess-square " + color + " " + i + j);
+            rank.appendChild(square);
+
+            color = (color === "light") ? "dark" : "light";
+        }
+        let chess_board = document.getElementsByClassName("chess-board")[0];
+        chess_board.appendChild(rank);
+        color = (color === "light") ? "dark" : "light";
+    }
+
+    var chess_board = document.getElementsByClassName("chess-board")[0];
+}
+
+function add_square_listeners() {
+    for(let i = 0; i < chess_squares.length; i++){
+        chess_squares[i].addEventListener("click", on_click_square);
+    }
 }
 
 function show_position(position) {
@@ -50,39 +83,45 @@ function show_position(position) {
             continue;
         }
 
-        switch(curr_piece){
-            case CHESS_PIECE.WHITE_KING: icon_file = "icons/kl.svg"; break;
-            case CHESS_PIECE.WHITE_QUEEN: icon_file = "icons/ql.svg"; break;
-            case CHESS_PIECE.WHITE_ROOK: icon_file = "icons/rl.svg"; break;
-            case CHESS_PIECE.WHITE_BISHOP: icon_file = "icons/bl.svg"; break;
-            case CHESS_PIECE.WHITE_KNIGHT: icon_file = "icons/nl.svg"; break;
-            case CHESS_PIECE.WHITE_PAWN: icon_file = "icons/pl.svg"; break;
-            case CHESS_PIECE.BLACK_KING: icon_file = "icons/kd.svg"; break;
-            case CHESS_PIECE.BLACK_QUEEN: icon_file = "icons/qd.svg"; break;
-            case CHESS_PIECE.BLACK_ROOK: icon_file = "icons/rd.svg"; break;
-            case CHESS_PIECE.BLACK_BISHOP: icon_file = "icons/bd.svg"; break;
-            case CHESS_PIECE.BLACK_KNIGHT: icon_file = "icons/nd.svg"; break;
-            case CHESS_PIECE.BLACK_PAWN: icon_file = "icons/pd.svg"; break;
-        }
-
         icon = document.createElement("img");
-        icon.setAttribute("src", icon_file);
+        icon.setAttribute("src", get_icon_file(curr_piece));
         icon.setAttribute("class", "piece-icon");
         curr_square.appendChild(icon);
     }
+}
+
+function get_icon_file(piece){
+    switch(curr_piece){
+        case CHESS_PIECE.WHITE_KING: return "icons/kl.svg";
+        case CHESS_PIECE.WHITE_QUEEN: return "icons/ql.svg";
+        case CHESS_PIECE.WHITE_ROOK: return "icons/rl.svg";
+        case CHESS_PIECE.WHITE_BISHOP: return "icons/bl.svg";
+        case CHESS_PIECE.WHITE_KNIGHT: return "icons/nl.svg";
+        case CHESS_PIECE.WHITE_PAWN: return "icons/pl.svg";
+        case CHESS_PIECE.BLACK_KING: return "icons/kd.svg";
+        case CHESS_PIECE.BLACK_QUEEN: return "icons/qd.svg";
+        case CHESS_PIECE.BLACK_ROOK: return "icons/rd.svg";
+        case CHESS_PIECE.BLACK_BISHOP: return "icons/bd.svg";
+        case CHESS_PIECE.BLACK_KNIGHT: return "icons/nd.svg";
+        case CHESS_PIECE.BLACK_PAWN: return "icons/pd.svg";
+    }
+    return null;
+}
+
+function on_click_square(e){
+    e.currentTarget.classList.add("highlighted");
+}
+
+function move_piece(orig, dest){
+
 }
 
 function show_hints() {
 
 }
 
-function chess_game_loop() {
-    let turn = COLOR.WHITE;
-    
-}
 
 function get_legal_moves() {
 
 }
-
 
