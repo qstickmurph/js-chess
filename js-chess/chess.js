@@ -167,17 +167,14 @@ function move_piece(orig, dest) {
     if(is_legal_move(orig, dest)) {
         position[dest] = position[orig];
         position[orig] = CHESS_PIECE.NOTHING;
-        selected_ind = -1;
         swap_turn();
     }
+
+    selected_ind = -1;
 }
 
 function swap_turn() {
     turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
-}
-
-function show_hints() {
-
 }
 
 function get_legal_moves(ind) {
@@ -278,20 +275,67 @@ function get_legal_moves(ind) {
                 }
             }
         }
-
     }
     // Rook
     else if(position[ind] == CHESS_PIECE.WHITE_ROOK || position[ind] == CHESS_PIECE.BLACK_ROOK) {
-
+        for(let xdiff = -1; xdiff <= 1; xdiff += 1){
+            dest = translate(ind, xdiff, 0)
+            while(dest != -1){
+                if(is_my_piece(dest)){
+                    break;
+                }
+                legal_moves.push(dest);
+                if(is_enemy_piece(dest)){
+                    break;
+                }
+                dest = translate(dest, xdiff, 0);
+            }
+        }
+        for(let ydiff = -1; ydiff <= 1; ydiff += 1){
+            dest = translate(ind, 0, ydiff)
+            while(dest != -1){
+                if(is_my_piece(dest)){
+                    break;
+                }
+                legal_moves.push(dest);
+                if(is_enemy_piece(dest)){
+                    break;
+                }
+                dest = translate(dest, 0, ydiff);
+            }
+        }
     }
     // Queen
     else if(position[ind] == CHESS_PIECE.WHITE_QUEEN || position[ind] == CHESS_PIECE.BLACK_QUEEN) {
-
+        for(let xdiff = -1; xdiff <= 1; xdiff += 1){
+            for(let ydiff = -1; ydiff <= 1; ydiff += 1){
+                dest = translate(ind, xdiff, ydiff)
+                while(dest != -1){
+                    if(is_my_piece(dest)){
+                        break;
+                    }
+                    legal_moves.push(dest);
+                    if(is_enemy_piece(dest)){
+                        break;
+                    }
+                    dest = translate(dest, xdiff, ydiff);
+                }
+            }
+        }
     }
     // King
     else if(position[ind] == CHESS_PIECE.WHITE_KING || position[ind] == CHESS_PIECE.BLACK_KING) {
-
+        for(let xdiff = -1; xdiff <= 1; xdiff += 1){
+            for(let ydiff = -1; ydiff <= 1; ydiff += 1){
+                dest = translate(ind, xdiff, ydiff)
+                if(dest != -1 && ! is_my_piece(dest)){
+                    legal_moves.push(dest);
+                }
+            }
+        }
     }
+
+    // TODO: If in Check, remove all options that don't remove check
 
     return legal_moves;
 }
@@ -312,8 +356,15 @@ function pos_to_ind(x, y) {
     return -1;
 }
 
+function is_in_check(){
+    return is_in_check(position);
+}
+
+function is_in_check(position){
+    return false;
+}
+
 function is_legal_move(orig, dest) {
-    alert(get_legal_moves(orig));
     return get_legal_moves(orig).includes(dest);
 }
 
