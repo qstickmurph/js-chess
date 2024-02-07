@@ -42,8 +42,7 @@ let selected_ind = -1;
 let chess_board
 let chess_squares = [];
 
-// Functions
-
+// Functions - Inits
 function init() {
     get_chess_board();
     turn = COLOR.WHITE;
@@ -75,8 +74,7 @@ function add_square_listeners() {
     }
 }
 
-
-// Rendering Functions
+// Functions - Rendering
 function render() {
     show_position();
     show_selected_ind();
@@ -116,7 +114,7 @@ function show_hints() {
 
 }
 
-// Event Listener Functions
+// Functions - Event Listeners
 function on_click_square(e) {
     if(e.button == 2) { //right click to hl a square
         if(e.currentTarget.classList.contains("hl")) {
@@ -138,7 +136,7 @@ function on_click_square(e) {
     render();
 }
 
-// Helper Functions
+// Functions - Helpers
 function get_icon_file(piece) {
     switch(curr_piece) {
         case CHESS_PIECE.WHITE_KING: return "icons/kl.svg";
@@ -157,8 +155,6 @@ function get_icon_file(piece) {
     return null;
 }
 
-
-
 function move_piece(orig, dest) {
     if(orig == -1) {
         return -1;
@@ -170,6 +166,10 @@ function move_piece(orig, dest) {
         swap_turn();
     }
 
+    if(is_in_check()){
+        alert("Check!");
+    }
+
     selected_ind = -1;
 }
 
@@ -177,25 +177,29 @@ function swap_turn() {
     turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
 }
 
+function get_all_legal_moves() {
+    let legal_moves = []
+    for(let i = 0; i < position.length; i++) {
+        legal_moves.push(get_legal_moves(i));
+    }
+    return legal_moves;
+}
+
 function get_legal_moves(ind) {
     let legal_moves = [];
-    // Nothing
-    if(position[ind] == CHESS_PIECE.NOTHING) {
+    // Nothing or Enemy
+    if(! is_my_piece(ind)) {
         legal_moves = [];
-    }
+    } 
     // White Pawn
     else if(position[ind] == CHESS_PIECE.WHITE_PAWN) {
         // Forward moves
+        if(position[translate(ind, 0, -1)] == CHESS_PIECE.NOTHING){
+            legal_moves.push(translate(ind, 0, -1));
+        }
         if(47 < ind && ind < 56) { // if on original space
-            if(! is_enemy_piece(translate(ind, 0, -1))){
-                legal_moves.push(translate(ind, 0, -1));
-            }
-            if(! is_enemy_piece(translate(ind, 0, -2))){
+            if(position[translate(ind, 0, -2)] == CHESS_PIECE.NOTHING){
                 legal_moves.push(translate(ind, 0, -2));
-            }
-        } else { // if not on original space
-            if(! is_enemy_piece(translate(ind, 0, -1))){
-                legal_moves.push(translate(ind, 0, -1));
             }
         }
         
@@ -210,18 +214,14 @@ function get_legal_moves(ind) {
     
     else if(position[ind] == CHESS_PIECE.BLACK_PAWN) { // Black Pawn
         // Forward moves
+        if(position[translate(ind, 0, 1)] == CHESS_PIECE.NOTHING){
+            legal_moves.push(translate(ind, 0, 1));
+        }
         if(7 < ind && ind < 16) { // if on original space
-            if(! is_enemy_piece(translate(ind, 0, 1))){
-                legal_moves.push(translate(ind, 0, 1));
-            }
-            if(! is_enemy_piece(translate(ind, 0, 2))){
+            if(position[translate(ind, 0, 2)] == CHESS_PIECE.NOTHING){
                 legal_moves.push(translate(ind, 0, 2));
             }
-        } else { // if not on original space
-            if(! is_enemy_piece(translate(ind, 0, 1))){
-                legal_moves.push(translate(ind, 0, 1));
-            }
-        }
+        } 
         
         // Diagonal Moves
         if(is_enemy_piece(translate(ind, 1, 1))) {
@@ -233,29 +233,18 @@ function get_legal_moves(ind) {
     }
     // Knight
     else if(position[ind] == CHESS_PIECE.WHITE_KNIGHT || position[ind] == CHESS_PIECE.BLACK_KNIGHT) {
-        if(translate(ind, 1, 2) != -1){
-            legal_moves.push(translate(ind, 1, 2));
-        }
-        if(translate(ind, -1, 2) != -1){
-            legal_moves.push(translate(ind, -1, 2));
-        }
-        if(translate(ind, 1, -2) != -1){
-            legal_moves.push(translate(ind, 1, -2));
-        }
-        if(translate(ind, -1, -2) != -1){
-            legal_moves.push(translate(ind, -1, -2));
-        }
-        if(translate(ind, 2, 1) != -1){
-            legal_moves.push(translate(ind, 2, 1));
-        }
-        if(translate(ind, -2, 1) != -1){
-            legal_moves.push(translate(ind, -2, 1));
-        }
-        if(translate(ind, 2, -1) != -1){
-            legal_moves.push(translate(ind, 2, -1));
-        }
-        if(translate(ind, -2, -1) != -1){
-            legal_moves.push(translate(ind, -2, -1));
+        let pairs = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
+        for(let i = 0; i < pairs.length; i++) {
+            for(let flip = 0; flip <= 1; flip++) {
+                let dest = translate(ind, pairs[i][flip], pairs[i][(flip + 1) % 2])
+                if(dest == -1) {
+                    continue;
+                }
+                if(is_my_piece(dest)) {
+                    continue;
+                }
+                legal_moves.push(dest);
+            }
         }
     }
     // Bishop
@@ -341,11 +330,18 @@ function get_legal_moves(ind) {
 }
 
 function translate(orig, x, y) {
-    dest = orig + x + 8*y;
-    if(0 <= dest && dest <= 63) {
-        return dest;
+    let orig_x = orig % 8;
+    let orig_y = Math.floor(orig / 8);
+
+    let dest_x = orig_x + x;
+    let dest_y = orig_y + y
+
+    if( dest_x > 7 || dest_x < 0 || dest_y > 7 || dest_y < 0) {
+        return -1;
     }
-    return -1;
+
+    let dest = dest_x + dest_y * 8;
+    return dest;
 }
 
 function pos_to_ind(x, y) {
@@ -356,6 +352,7 @@ function pos_to_ind(x, y) {
     return -1;
 }
 
+// Functions - Checks
 function is_in_check(){
     return is_in_check(position);
 }
