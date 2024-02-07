@@ -20,7 +20,7 @@ const COLOR = Object.freeze({
     BLACK: 1
 })
 
-// Global Variables
+// Global Variables - Data
 let position = 
 [
     CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
@@ -29,48 +29,61 @@ let position =
     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-    CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN, 
+    CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,
     CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
 ];
+let letters = "abcdefgh".split("");
+let nums = "12345678".split("");
+let turn = COLOR.WHITE;
+let flipped_board = false;
+let selected_ind = -1;
+
+// Global Variables - DOM
+let chess_board
+let chess_squares = [];
 
 // Functions
 
-function load_page() {
-    create_board();
-    chess_board.setAttribute("width", "1000px");
-    set_element_vars();
-    show_position(position);
+function init() {
+    get_chess_board();
     turn = COLOR.WHITE;
     add_square_listeners();
+    render();
 }
 
-function create_board() {
-    let color = "light";
-    for( let i = 1; i <= 8; i++) {
-        rank = document.createElement("div");
-        rank.setAttribute("class", "chess-rank " + i);
-        for( let j = 1; j <= 8; j++) {
-            square = document.createElement("div");
-            square.setAttribute("class", "chess-square " + color + " " + i + j);
-            rank.appendChild(square);
+function start_chess_game(){
 
-            color = (color === "light") ? "dark" : "light";
-        }
-        let chess_board = document.getElementsByClassName("chess-board")[0];
-        chess_board.appendChild(rank);
-        color = (color === "light") ? "dark" : "light";
+}
+
+function stop_chess_game(){
+
+}
+
+function get_chess_board() {
+    chess_board = document.getElementsByClassName("chess-board")[0];
+    chess_squares = [];
+    for(let i = 0; i < 8; i++) {
+        let rank_element = chess_board.children[i];
+        chess_squares = chess_squares.concat(Array.from(rank_element.children));
     }
-
-    var chess_board = document.getElementsByClassName("chess-board")[0];
 }
 
 function add_square_listeners() {
-    for(let i = 0; i < chess_squares.length; i++){
+    for(let i = 0; i < chess_squares.length; i++) {
         chess_squares[i].addEventListener("click", on_click_square);
+        chess_squares[i].addEventListener("contextmenu", on_click_square);
     }
 }
 
-function show_position(position) {
+
+// Rendering Functions
+function render() {
+    show_position();
+    show_selected_ind();
+    show_hints();
+}
+
+function show_position() {
     for(let i = 0; i < chess_squares.length; i++) {
         curr_piece= position[i]
         curr_square = chess_squares[i]
@@ -79,7 +92,7 @@ function show_position(position) {
             curr_square.removeChild(curr_square.lastChild);
         }
 
-        if(curr_piece == CHESS_PIECE.NOTHING){
+        if(curr_piece == CHESS_PIECE.NOTHING) {
             continue;
         }
 
@@ -90,8 +103,44 @@ function show_position(position) {
     }
 }
 
-function get_icon_file(piece){
-    switch(curr_piece){
+function show_selected_ind() {
+    for(let i = 0; i < chess_squares.length; i++) {
+        chess_squares[i].classList.remove("selected");
+    }
+    if(selected_ind >= 0) {
+        chess_squares[selected_ind].classList.add("selected");
+    }
+}
+
+function show_hints() {
+
+}
+
+// Event Listener Functions
+function on_click_square(e) {
+    if(e.button == 2) { //right click to hl a square
+        if(e.currentTarget.classList.contains("hl")) {
+            e.currentTarget.classList.remove("hl");
+        } else {
+            e.currentTarget.classList.add("hl");
+        }
+    }else { //left click to select a piece
+        let ind = chess_squares.indexOf(e.currentTarget);
+
+        if(is_my_piece(ind)) { // if piece is same color as current turn, select it
+            selected_ind = ind;
+        } else {// otherwise, attempt to move the selected piece
+            move_piece(selected_ind, ind);
+        }
+
+    }
+
+    render();
+}
+
+// Helper Functions
+function get_icon_file(piece) {
+    switch(curr_piece) {
         case CHESS_PIECE.WHITE_KING: return "icons/kl.svg";
         case CHESS_PIECE.WHITE_QUEEN: return "icons/ql.svg";
         case CHESS_PIECE.WHITE_ROOK: return "icons/rl.svg";
@@ -108,20 +157,212 @@ function get_icon_file(piece){
     return null;
 }
 
-function on_click_square(e){
-    e.currentTarget.classList.add("highlighted");
+
+
+function move_piece(orig, dest) {
+    if(orig == -1) {
+        return -1;
+    }
+
+    if(is_legal_move(orig, dest)) {
+        position[dest] = position[orig];
+        position[orig] = CHESS_PIECE.NOTHING;
+        selected_ind = -1;
+        swap_turn();
+    }
 }
 
-function move_piece(orig, dest){
-
+function swap_turn() {
+    turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
 }
 
 function show_hints() {
 
 }
 
+function get_legal_moves(ind) {
+    let legal_moves = [];
+    // Nothing
+    if(position[ind] == CHESS_PIECE.NOTHING) {
+        legal_moves = [];
+    }
+    // White Pawn
+    else if(position[ind] == CHESS_PIECE.WHITE_PAWN) {
+        // Forward moves
+        if(47 < ind && ind < 56) { // if on original space
+            if(! is_enemy_piece(translate(ind, 0, -1))){
+                legal_moves.push(translate(ind, 0, -1));
+            }
+            if(! is_enemy_piece(translate(ind, 0, -2))){
+                legal_moves.push(translate(ind, 0, -2));
+            }
+        } else { // if not on original space
+            if(! is_enemy_piece(translate(ind, 0, -1))){
+                legal_moves.push(translate(ind, 0, -1));
+            }
+        }
+        
+        // Diagonal Moves
+        if(is_enemy_piece(translate(ind, 1, -1))) {
+            legal_moves.push(translate(ind, 1, -1));
+        }
+        if(is_enemy_piece(translate(ind, -1, -1))) {
+            legal_moves.push(translate(ind, -1, -1));
+        }
+    }
+    
+    else if(position[ind] == CHESS_PIECE.BLACK_PAWN) { // Black Pawn
+        // Forward moves
+        if(7 < ind && ind < 16) { // if on original space
+            if(! is_enemy_piece(translate(ind, 0, 1))){
+                legal_moves.push(translate(ind, 0, 1));
+            }
+            if(! is_enemy_piece(translate(ind, 0, 2))){
+                legal_moves.push(translate(ind, 0, 2));
+            }
+        } else { // if not on original space
+            if(! is_enemy_piece(translate(ind, 0, 1))){
+                legal_moves.push(translate(ind, 0, 1));
+            }
+        }
+        
+        // Diagonal Moves
+        if(is_enemy_piece(translate(ind, 1, 1))) {
+            legal_moves.push(translate(ind, 1, 1));
+        }
+        if(is_enemy_piece(translate(ind, -1, 1))) {
+            legal_moves.push(translate(ind, -1, 1));
+        }
+    }
+    // Knight
+    else if(position[ind] == CHESS_PIECE.WHITE_KNIGHT || position[ind] == CHESS_PIECE.BLACK_KNIGHT) {
+        if(translate(ind, 1, 2) != -1){
+            legal_moves.push(translate(ind, 1, 2));
+        }
+        if(translate(ind, -1, 2) != -1){
+            legal_moves.push(translate(ind, -1, 2));
+        }
+        if(translate(ind, 1, -2) != -1){
+            legal_moves.push(translate(ind, 1, -2));
+        }
+        if(translate(ind, -1, -2) != -1){
+            legal_moves.push(translate(ind, -1, -2));
+        }
+        if(translate(ind, 2, 1) != -1){
+            legal_moves.push(translate(ind, 2, 1));
+        }
+        if(translate(ind, -2, 1) != -1){
+            legal_moves.push(translate(ind, -2, 1));
+        }
+        if(translate(ind, 2, -1) != -1){
+            legal_moves.push(translate(ind, 2, -1));
+        }
+        if(translate(ind, -2, -1) != -1){
+            legal_moves.push(translate(ind, -2, -1));
+        }
+    }
+    // Bishop
+    else if(position[ind] == CHESS_PIECE.WHITE_BISHOP || position[ind] == CHESS_PIECE.BLACK_BISHOP) {
+        for(let xdiff = -1; xdiff <= 1; xdiff += 2){
+            for(let ydiff = -1; ydiff <= 1; ydiff += 2){
+                dest = translate(ind, xdiff, ydiff)
+                while(dest != -1){
+                    if(is_my_piece(dest)){
+                        break;
+                    }
+                    legal_moves.push(dest);
+                    if(is_enemy_piece(dest)){
+                        break;
+                    }
+                    dest = translate(dest, xdiff, ydiff);
+                }
+            }
+        }
 
-function get_legal_moves() {
+    }
+    // Rook
+    else if(position[ind] == CHESS_PIECE.WHITE_ROOK || position[ind] == CHESS_PIECE.BLACK_ROOK) {
 
+    }
+    // Queen
+    else if(position[ind] == CHESS_PIECE.WHITE_QUEEN || position[ind] == CHESS_PIECE.BLACK_QUEEN) {
+
+    }
+    // King
+    else if(position[ind] == CHESS_PIECE.WHITE_KING || position[ind] == CHESS_PIECE.BLACK_KING) {
+
+    }
+
+    return legal_moves;
 }
 
+function translate(orig, x, y) {
+    dest = orig + x + 8*y;
+    if(0 <= dest && dest <= 63) {
+        return dest;
+    }
+    return -1;
+}
+
+function pos_to_ind(x, y) {
+    dest = x + 8*y;
+    if(0 <= dest && dest <= 63) {
+        return dest;
+    }
+    return -1;
+}
+
+function is_legal_move(orig, dest) {
+    alert(get_legal_moves(orig));
+    return get_legal_moves(orig).includes(dest);
+}
+
+function is_my_piece(ind) {
+    if(ind < 0 || ind > 63) {
+        return false;
+    }
+    if(turn == COLOR.WHITE) {
+        return (
+               position[ind] == CHESS_PIECE.WHITE_PAWN
+            || position[ind] == CHESS_PIECE.WHITE_KNIGHT
+            || position[ind] == CHESS_PIECE.WHITE_BISHOP
+            || position[ind] == CHESS_PIECE.WHITE_ROOK
+            || position[ind] == CHESS_PIECE.WHITE_QUEEN
+            || position[ind] == CHESS_PIECE.WHITE_KING
+        );
+    } else {
+        return (
+               position[ind] == CHESS_PIECE.BLACK_PAWN
+            || position[ind] == CHESS_PIECE.BLACK_KNIGHT
+            || position[ind] == CHESS_PIECE.BLACK_BISHOP
+            || position[ind] == CHESS_PIECE.BLACK_ROOK
+            || position[ind] == CHESS_PIECE.BLACK_QUEEN
+            || position[ind] == CHESS_PIECE.BLACK_KING
+        );
+    }
+}
+
+function is_enemy_piece(ind) {
+    if(ind < 0 || ind > 63) {
+        return false;
+    }
+    if(turn == COLOR.WHITE) {
+        return (
+               position[ind] == CHESS_PIECE.BLACK_PAWN
+            || position[ind] == CHESS_PIECE.BLACK_KNIGHT
+            || position[ind] == CHESS_PIECE.BLACK_BISHOP
+            || position[ind] == CHESS_PIECE.BLACK_ROOK
+            || position[ind] == CHESS_PIECE.BLACK_QUEEN
+            || position[ind] == CHESS_PIECE.BLACK_KING
+        );
+    } else {
+        return (
+               position[ind] == CHESS_PIECE.WHITE_PAWN
+            || position[ind] == CHESS_PIECE.WHITE_KNIGHT
+            || position[ind] == CHESS_PIECE.WHITE_BISHOP
+            || position[ind] == CHESS_PIECE.WHITE_ROOK
+            || position[ind] == CHESS_PIECE.WHITE_QUEEN
+            || position[ind] == CHESS_PIECE.WHITE_KING
+        );
+    }
+}
