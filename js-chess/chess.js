@@ -21,32 +21,29 @@ const COLOR = Object.freeze({
 })
 
 // Global Variables - Data
-let position = 
-[
-    CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
-    CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,  CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN, 
-    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-    CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
-    CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,
-    CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
-];
-let letters = "abcdefgh".split("");
-let nums = "12345678".split("");
+const letters = "abcdefgh".split("");
+const nums = "12345678".split("");
+let position;
 let turn = COLOR.WHITE;
-let flipped_board = false;
+let board_flipped = false;
 let selected_ind = -1;
+let notations = [];
 
 // Global Variables - DOM
-let chess_board
+let chess_board;
 let chess_squares = [];
+let reset_button;
+let flip_button;
+let draw_button;
+let resign_button;
+let notation_table;
 
 // Functions - Inits
 function init() {
-    get_chess_board();
-    turn = COLOR.WHITE;
+    get_html_elements();
+    reset_game();
     add_square_listeners();
+    add_button_listeners();
     render();
 }
 
@@ -58,13 +55,19 @@ function stop_chess_game(){
 
 }
 
-function get_chess_board() {
+function get_html_elements() {
     chess_board = document.getElementsByClassName("chess-board")[0];
     chess_squares = [];
     for(let i = 0; i < 8; i++) {
         let rank_element = chess_board.children[i];
         chess_squares = chess_squares.concat(Array.from(rank_element.children));
     }
+    reset_button = document.getElementsByClassName("reset-game-button")[0];
+    flip_button = document.getElementsByClassName("flip-board-button")[0];
+    draw_button = document.getElementsByClassName("offer-draw-button")[0];
+    resign_button = document.getElementsByClassName("resign-button")[0];
+
+    notation_table = document.getElementsByClassName("chess-notation")[0];
 }
 
 function add_square_listeners() {
@@ -74,11 +77,19 @@ function add_square_listeners() {
     }
 }
 
+function add_button_listeners() {
+    reset_button.addEventListener("click", reset_game);
+    flip_button.addEventListener("click", flip_board);
+    draw_button.addEventListener("click", offer_draw);
+    resign_button.addEventListener("click", resign);
+}
+
 // Functions - Rendering
 function render() {
     show_position();
     show_selected_ind();
     show_hints();
+    show_notations();
 }
 
 function show_position() {
@@ -90,7 +101,7 @@ function show_position() {
             curr_square.removeChild(curr_square.lastChild);
         }
 
-        if(curr_piece == CHESS_PIECE.NOTHING) {
+        if(curr_piece === CHESS_PIECE.NOTHING) {
             continue;
         }
 
@@ -114,9 +125,34 @@ function show_hints() {
 
 }
 
+function show_notations() {
+    while(notation_table.firstChild) { // Clear notation table
+        notation_table.removeChild(notation_table.lastChild);
+    }
+
+    // Put all notations in notation table
+    every_other = true;
+    move_num = 1;
+    for(let i = 0; i < notations.length; i++) {
+        if(every_other) {
+            move_num_p = document.createElement("p");
+            move_num_p.innerHTML = move_num + ".";
+            move_num_p.classList.add("notation-move-num");
+            notation_table.appendChild(move_num_p);
+            move_num++;
+        }
+        every_other = ! every_other;
+
+        move_p = document.createElement("p");
+        move_p.innerHTML = notations[i];
+        move_p.classList.add("notation-move");
+        notation_table.appendChild(move_p);
+    }
+}
+
 // Functions - Event Listeners
 function on_click_square(e) {
-    if(e.button == 2) { //right click to hl a square
+    if(e.button === 2) { //right click to hl a square
         if(e.currentTarget.classList.contains("hl")) {
             e.currentTarget.classList.remove("hl");
         } else {
@@ -130,7 +166,6 @@ function on_click_square(e) {
         } else {// otherwise, attempt to move the selected piece
             move_piece(selected_ind, ind);
         }
-
     }
 
     render();
@@ -156,18 +191,17 @@ function get_icon_file(piece) {
 }
 
 function move_piece(orig, dest) {
-    if(orig == -1) {
+    if(orig === -1) {
         return -1;
     }
 
     if(is_legal_move(orig, dest)) {
         position[dest] = position[orig];
         position[orig] = CHESS_PIECE.NOTHING;
+        if(is_in_check()){
+            alert("Check!");
+        }
         swap_turn();
-    }
-
-    if(is_in_check()){
-        alert("Check!");
     }
 
     selected_ind = -1;
@@ -175,6 +209,39 @@ function move_piece(orig, dest) {
 
 function swap_turn() {
     turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+}
+
+function flip_board() {
+    board_flipped = ! board_flipped;
+    render();
+}
+
+function reset_game() {
+    position = 
+    [
+        CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
+        CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,  CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN, 
+        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+        CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
+        CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,
+        CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
+    ];
+    turn = COLOR.WHITE;
+    board_flipped = false;
+    notation = [];
+    render();
+}
+
+function offer_draw() {
+
+}
+
+function resign() {
+    winning_color = (turn === COLOR.WHITE) ? "Black" : "White";
+    alert(`Game Over! $(winning_color) wins!`);
+    reset_game();
 }
 
 function get_all_legal_moves() {
@@ -352,12 +419,25 @@ function pos_to_ind(x, y) {
     return -1;
 }
 
-// Functions - Checks
-function is_in_check(){
-    return is_in_check(position);
+function add_notation(text) {
+    notations.push(text);
+    render();
 }
 
-function is_in_check(position){
+// Functions - Checks
+function is_in_check(){
+    legal_moves = get_all_legal_moves();
+    for(let i = 0; i < legal_moves.length; i++) {
+        legal_moves_for_this_piece = legal_moves[i];
+        for(let j = 0; j < legal_moves_for_this_piece.length; j++) {
+            piece_on_dest_square = position[legal_moves_for_this_piece[j]];
+            is_black_king = turn === COLOR.WHITE && piece_on_dest_square == CHESS_PIECE.BLACK_KING
+            is_white_king = turn === COLOR.BLACK && piece_on_dest_square == CHESS_PIECE.WHITE_KING
+            if(is_black_king || is_white_king){
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -369,23 +449,23 @@ function is_my_piece(ind) {
     if(ind < 0 || ind > 63) {
         return false;
     }
-    if(turn == COLOR.WHITE) {
+    if(turn === COLOR.WHITE) {
         return (
-               position[ind] == CHESS_PIECE.WHITE_PAWN
-            || position[ind] == CHESS_PIECE.WHITE_KNIGHT
-            || position[ind] == CHESS_PIECE.WHITE_BISHOP
-            || position[ind] == CHESS_PIECE.WHITE_ROOK
-            || position[ind] == CHESS_PIECE.WHITE_QUEEN
-            || position[ind] == CHESS_PIECE.WHITE_KING
+               position[ind] === CHESS_PIECE.WHITE_PAWN
+            || position[ind] === CHESS_PIECE.WHITE_KNIGHT
+            || position[ind] === CHESS_PIECE.WHITE_BISHOP
+            || position[ind] === CHESS_PIECE.WHITE_ROOK
+            || position[ind] === CHESS_PIECE.WHITE_QUEEN
+            || position[ind] === CHESS_PIECE.WHITE_KING
         );
     } else {
         return (
-               position[ind] == CHESS_PIECE.BLACK_PAWN
-            || position[ind] == CHESS_PIECE.BLACK_KNIGHT
-            || position[ind] == CHESS_PIECE.BLACK_BISHOP
-            || position[ind] == CHESS_PIECE.BLACK_ROOK
-            || position[ind] == CHESS_PIECE.BLACK_QUEEN
-            || position[ind] == CHESS_PIECE.BLACK_KING
+               position[ind] === CHESS_PIECE.BLACK_PAWN
+            || position[ind] === CHESS_PIECE.BLACK_KNIGHT
+            || position[ind] === CHESS_PIECE.BLACK_BISHOP
+            || position[ind] === CHESS_PIECE.BLACK_ROOK
+            || position[ind] === CHESS_PIECE.BLACK_QUEEN
+            || position[ind] === CHESS_PIECE.BLACK_KING
         );
     }
 }
@@ -394,23 +474,23 @@ function is_enemy_piece(ind) {
     if(ind < 0 || ind > 63) {
         return false;
     }
-    if(turn == COLOR.WHITE) {
+    if(turn === COLOR.WHITE) {
         return (
-               position[ind] == CHESS_PIECE.BLACK_PAWN
-            || position[ind] == CHESS_PIECE.BLACK_KNIGHT
-            || position[ind] == CHESS_PIECE.BLACK_BISHOP
-            || position[ind] == CHESS_PIECE.BLACK_ROOK
-            || position[ind] == CHESS_PIECE.BLACK_QUEEN
-            || position[ind] == CHESS_PIECE.BLACK_KING
+               position[ind] === CHESS_PIECE.BLACK_PAWN
+            || position[ind] === CHESS_PIECE.BLACK_KNIGHT
+            || position[ind] === CHESS_PIECE.BLACK_BISHOP
+            || position[ind] === CHESS_PIECE.BLACK_ROOK
+            || position[ind] === CHESS_PIECE.BLACK_QUEEN
+            || position[ind] === CHESS_PIECE.BLACK_KING
         );
     } else {
         return (
-               position[ind] == CHESS_PIECE.WHITE_PAWN
-            || position[ind] == CHESS_PIECE.WHITE_KNIGHT
-            || position[ind] == CHESS_PIECE.WHITE_BISHOP
-            || position[ind] == CHESS_PIECE.WHITE_ROOK
-            || position[ind] == CHESS_PIECE.WHITE_QUEEN
-            || position[ind] == CHESS_PIECE.WHITE_KING
+               position[ind] === CHESS_PIECE.WHITE_PAWN
+            || position[ind] === CHESS_PIECE.WHITE_KNIGHT
+            || position[ind] === CHESS_PIECE.WHITE_BISHOP
+            || position[ind] === CHESS_PIECE.WHITE_ROOK
+            || position[ind] === CHESS_PIECE.WHITE_QUEEN
+            || position[ind] === CHESS_PIECE.WHITE_KING
         );
     }
 }

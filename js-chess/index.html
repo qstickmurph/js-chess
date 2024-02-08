@@ -7,6 +7,13 @@
     </head>
     <body onload="init()">
         <div class="chess-container">
+            <div class="chess-buttons">
+                <button class="reset-game-button">Reset Game</button>
+                <button class="flip-board-button">Flip Board</button>
+                <button class="offer-draw-button">Offer Draw</button>
+                <button class="resign-button">Resign</button>
+                <button class="add-notation-button" onclick="add_notation('Test');">Add Notation [TEST]</button>
+            </div>
             <div class="chess-board" oncontextmenu="return false;">
                 <div class="chess-rank 1">
                     <div class="chess-square light 11"></div>
@@ -88,6 +95,8 @@
                     <div class="chess-square dark 87"></div>
                     <div class="chess-square light 88"></div>
                 </div>
+            </div>
+            <div class="chess-notation">
             </div>
         </div>
     </body>
