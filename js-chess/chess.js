@@ -232,7 +232,7 @@ function reset_game() {
     ];
     turn = COLOR.WHITE;
     board_flipped = false;
-    notation = [];
+    notations = [];
     render();
 }
 

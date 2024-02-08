@@ -28,21 +28,33 @@ body {
     margin: 10px;
 }
 
+.chess-notation-container {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    grid-auto-flow: rows;
+    overflow: hidden;
+    padding: 10px;
+    row-gap: 10px;
+}
+
 .chess-notation {
     display: grid;
     grid-template-columns: 1fr 2fr 2fr;
+    grid-auto-rows: min-content;
     row-gap: 10px;
-    margin: 10px;
-    width: calc(100% - 2 * 10px);
+    width: 100%;
     max-width: 300px;
-    height: fit-content; 
-    max-height: calc(100% - 2 * 10px);
+    height: 100%;
     overflow: scroll;
 }
 
 .chess-notation p {
     margin: 0;
     height: 1lh;
+}
+
+.chess-notation-buttons {
+    
 }
 
 .chess-board {
