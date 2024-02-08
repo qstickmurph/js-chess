@@ -7,12 +7,12 @@ const CHESS_PIECE = Object.freeze({
     WHITE_BISHOP: 4,
     WHITE_KNIGHT: 5,
     WHITE_PAWN: 6,
-    BLACK_KING: 7,
-    BLACK_QUEEN: 8,
-    BLACK_ROOK: 9,
-    BLACK_BISHOP: 10,
-    BLACK_KNIGHT: 11,
-    BLACK_PAWN: 12
+    BLACK_KING: -1,
+    BLACK_QUEEN: -2,
+    BLACK_ROOK: -3,
+    BLACK_BISHOP: -4,
+    BLACK_KNIGHT: -5,
+    BLACK_PAWN: -6
 });
 
 const COLOR = Object.freeze({
