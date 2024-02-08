@@ -22,7 +22,7 @@ const COLOR = Object.freeze({
 
 // Global Variables - Data
 const letters = "abcdefgh".split("");
-const nums = "12345678".split("");
+const nums = "87654321".split("");
 let position;
 let turn = COLOR.WHITE;
 let board_flipped = false;
@@ -196,9 +196,11 @@ function move_piece(orig, dest) {
     }
 
     if(is_legal_move(orig, dest)) {
+        new_notation = generate_notation(orig, dest);
+        add_notation(new_notation);
         position[dest] = position[orig];
         position[orig] = CHESS_PIECE.NOTHING;
-        if(is_in_check()){
+        if(is_check()){
             alert("Check!");
         }
         swap_turn();
@@ -419,13 +421,71 @@ function pos_to_ind(x, y) {
     return -1;
 }
 
+function ind_to_pos(ind) {
+    if(0 <= ind && ind <= 63) {
+        return [ind % 8, Math.floor(ind / 8)];
+    }
+    return -1;
+}
+
+function generate_notation(orig, dest) {
+    orig_pos = ind_to_pos(orig);
+    dest_pos = ind_to_pos(dest);
+
+    orig_notation = letters[orig_pos[0]] + nums[orig_pos[1]];
+    dest_notation = letters[dest_pos[0]] + nums[dest_pos[1]];
+
+    if(is_pawn(orig)) {
+        if(is_empty(dest)) {
+            return dest_notation;
+        }else {
+            return orig_notation[0] + "x" + dest_notation
+        }
+    }
+    if(is_knight(orig)) {
+        if(is_empty(dest)) {
+            return "N" + dest_notation;
+        }else {
+            return "Nx" + dest_notation
+        }
+    }
+    if(is_bishop(orig)) {
+        if(is_empty(dest)) {
+            return "B" + dest_notation;
+        }else {
+            return "Bx" + dest_notation
+        }
+    }
+    if(is_rook(orig)) {
+        if(is_empty(dest)) {
+            return "R" + dest_notation;
+        }else {
+            return "Rx" + dest_notation
+        }
+    }
+    if(is_queen(orig)) {
+        if(is_empty(dest)) {
+            return "Q" + dest_notation;
+        }else {
+            return "Qx" + dest_notation;
+        }
+    }
+    if(is_king(orig)) {
+        if(is_empty(dest)) {
+            return "K" + dest_notation;
+        }else {
+            return "Kx" + dest_notation
+        }
+    }
+}
+
 function add_notation(text) {
     notations.push(text);
     render();
 }
 
 // Functions - Checks
-function is_in_check(){
+function is_check() {
     legal_moves = get_all_legal_moves();
     for(let i = 0; i < legal_moves.length; i++) {
         legal_moves_for_this_piece = legal_moves[i];
@@ -438,6 +498,10 @@ function is_in_check(){
             }
         }
     }
+    return false;
+}
+
+function is_checkmate() {
     return false;
 }
 
@@ -494,3 +558,53 @@ function is_enemy_piece(ind) {
         );
     }
 }
+
+function is_pawn(ind) {
+    if(position[ind] === CHESS_PIECE.BLACK_PAWN || position[ind] === CHESS_PIECE.WHITE_PAWN) {
+        return true;
+    }
+    return false;
+}
+
+function is_knight(ind) {
+    if(position[ind] === CHESS_PIECE.BLACK_KNIGHT || position[ind] === CHESS_PIECE.WHITE_KNIGHT) {
+        return true;
+    }
+    return false;
+}
+
+function is_bishop(ind) {
+    if(position[ind] === CHESS_PIECE.BLACK_BISHOP || position[ind] === CHESS_PIECE.WHITE_BISHOP) {
+        return true;
+    }
+    return false;
+}
+
+function is_rook(ind) {
+    if(position[ind] === CHESS_PIECE.BLACK_ROOK || position[ind] === CHESS_PIECE.WHITE_ROOK) {
+        return true;
+    }
+    return false;
+}
+
+function is_queen(ind) {
+    if(position[ind] === CHESS_PIECE.BLACK_QUEEN || position[ind] === CHESS_PIECE.WHITE_QUEEN) {
+        return true;
+    }
+    return false;
+}
+
+function is_king(ind) {
+    if(position[ind] === CHESS_PIECE.BLACK_KING || position[ind] === CHESS_PIECE.WHITE_KING) {
+        return true;
+    }
+    return false;
+}
+
+function is_empty(ind) {
+    if(position[ind] === CHESS_PIECE.NOTHING || position[ind] === CHESS_PIECE.NOTHING) {
+        return true;
+    }
+    return false;
+}
+
