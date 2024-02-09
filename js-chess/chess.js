@@ -267,169 +267,66 @@ function resign() {
 }
 
 function get_all_legal_moves(position, turn) {
-    let legal_moves = []
+    let all_legal_moves = []
     for(let i = 0; i < position.length; i++) {
         legal_moves_for_i = get_legal_moves(position, i, turn)
         for(let j = 0; j < legal_moves_for_i.length; j++) {
-            legal_moves.push([i, legal_moves_for_i[j]]);
+            all_legal_moves.push([i, legal_moves_for_i[j]]);
         }
     }
-    return legal_moves;
+    return all_legal_moves;
 }
 
 function get_legal_moves(position, ind, turn) {
-    let legal_moves = [];
+    let all_moves = [];
     // Nothing or Enemy
     if(! is_my_piece(position, ind, turn)) {
-        legal_moves = [];
+        return [];
     } 
-    // White Pawn
-    else if(position[ind] == CHESS_PIECE.WHITE_PAWN) {
-        // Forward moves
-        if(position[translate(ind, 0, -1)] == CHESS_PIECE.NOTHING){
-            legal_moves.push(translate(ind, 0, -1));
-        }
-        if(47 < ind && ind < 56) { // if on original space
-            if(position[translate(ind, 0, -2)] == CHESS_PIECE.NOTHING){
-                legal_moves.push(translate(ind, 0, -2));
-            }
-        }
-        
-        // Diagonal Moves
-        if(is_enemy_piece(position, translate(ind, 1, -1), turn)) {
-            legal_moves.push(translate(ind, 1, -1));
-        }
-        if(is_enemy_piece(position, translate(ind, -1, -1), turn)) {
-            legal_moves.push(translate(ind, -1, -1));
-        }
-    }
-    
-    else if(position[ind] == CHESS_PIECE.BLACK_PAWN) { // Black Pawn
-        // Forward moves
-        if(position[translate(ind, 0, 1)] == CHESS_PIECE.NOTHING){
-            legal_moves.push(translate(ind, 0, 1));
-        }
-        if(7 < ind && ind < 16) { // if on original space
-            if(position[translate(ind, 0, 2)] == CHESS_PIECE.NOTHING){
-                legal_moves.push(translate(ind, 0, 2));
-            }
-        } 
-        
-        // Diagonal Moves
-        if(is_enemy_piece(position, translate(ind, 1, 1), turn)) {
-            legal_moves.push(translate(ind, 1, 1));
-        }
-        if(is_enemy_piece(position, translate(ind, -1, 1), turn)) {
-            legal_moves.push(translate(ind, -1, 1));
-        }
+    // Pawn
+    if(is_pawn(position, ind)) {
+        all_moves = pawn_moves(position, ind, turn);
     }
     // Knight
-    else if(position[ind] == CHESS_PIECE.WHITE_KNIGHT || position[ind] == CHESS_PIECE.BLACK_KNIGHT) {
-        let pairs = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
-        for(let i = 0; i < pairs.length; i++) {
-            for(let flip = 0; flip <= 1; flip++) {
-                let dest = translate(ind, pairs[i][flip], pairs[i][(flip + 1) % 2])
-                if(dest == -1) {
-                    continue;
-                }
-                if(is_my_piece(position, dest, turn)) {
-                    continue;
-                }
-                legal_moves.push(dest);
-            }
-        }
+    if(is_knight(position, ind)) {
+        all_moves = knight_moves(position, ind);
     }
     // Bishop
-    else if(position[ind] == CHESS_PIECE.WHITE_BISHOP || position[ind] == CHESS_PIECE.BLACK_BISHOP) {
-        for(let xdiff = -1; xdiff <= 1; xdiff += 2){
-            for(let ydiff = -1; ydiff <= 1; ydiff += 2){
-                dest = translate(ind, xdiff, ydiff)
-                while(dest != -1){
-                    if(is_my_piece(position, dest, turn)){
-                        break;
-                    }
-                    legal_moves.push(dest);
-                    if(is_enemy_piece(position, dest, turn)){
-                        break;
-                    }
-                    dest = translate(dest, xdiff, ydiff);
-                }
-            }
-        }
+    if(is_bishop(position, ind)) {
+        all_moves = bishop_moves(position, ind);
     }
     // Rook
-    else if(position[ind] == CHESS_PIECE.WHITE_ROOK || position[ind] == CHESS_PIECE.BLACK_ROOK) {
-        for(let xdiff = -1; xdiff <= 1; xdiff += 1){
-            dest = translate(ind, xdiff, 0)
-            while(dest != -1){
-                if(is_my_piece(position, dest, turn)){
-                    break;
-                }
-                legal_moves.push(dest);
-                if(is_enemy_piece(position, dest, turn)){
-                    break;
-                }
-                dest = translate(dest, xdiff, 0);
-            }
-        }
-        for(let ydiff = -1; ydiff <= 1; ydiff += 1){
-            dest = translate(ind, 0, ydiff)
-            while(dest != -1){
-                if(is_my_piece(position, dest, turn)){
-                    break;
-                } legal_moves.push(dest);
-                if(is_enemy_piece(position, dest, turn)){
-                    break;
-                }
-                dest = translate(dest, 0, ydiff);
-            }
-        }
+    if(is_rook(position, ind)) {
+        all_moves = rook_moves(position, ind);
     }
     // Queen
-    else if(position[ind] == CHESS_PIECE.WHITE_QUEEN || position[ind] == CHESS_PIECE.BLACK_QUEEN) {
-        for(let xdiff = -1; xdiff <= 1; xdiff += 1){
-            for(let ydiff = -1; ydiff <= 1; ydiff += 1){
-                dest = translate(ind, xdiff, ydiff)
-                while(dest != -1){
-                    if(is_my_piece(position, dest, turn)){
-                        break;
-                    }
-                    legal_moves.push(dest);
-                    if(is_enemy_piece(position, dest, turn)){
-                        break;
-                    }
-                    dest = translate(dest, xdiff, ydiff);
-                }
-            }
-        }
+    if(is_queen(position, ind)) {
+        all_moves = queen_moves(position, ind);
     }
     // King
-    else if(position[ind] == CHESS_PIECE.WHITE_KING || position[ind] == CHESS_PIECE.BLACK_KING) {
-        for(let xdiff = -1; xdiff <= 1; xdiff += 1){
-            for(let ydiff = -1; ydiff <= 1; ydiff += 1){
-                dest = translate(ind, xdiff, ydiff)
-                if(dest != -1 && ! is_my_piece(position, dest, turn)){
-                    legal_moves.push(dest);
-                }
-            }
-        }
+    if(is_king(position, ind)) {
+        all_moves = king_moves(position, ind);
     }
 
-    // TODO: If in Check, remove all options that don't remove check
-    new_legal_moves = []
-    for(let i = 0; i < legal_moves.length; i++) {
-        dest = legal_moves[i];
+    // Remove illegal moves
+    legal_moves = []
+    for(let i = 0; i < all_moves.length; i++) {
+        dest = all_moves[i];
+
+        if(is_my_piece(position, dest, turn)) {
+            continue;
+        }
+
         proto_position = position.concat();
         proto_position[dest] = proto_position[ind];
         proto_position[ind] = CHESS_PIECE.NOTHING;
-        opposite_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
-
-        if(! is_check(proto_position, turn)) {
-            new_legal_moves.push(dest);
+        if(is_check(proto_position, turn)) {
+            continue;
         }
+
+        legal_moves.push(dest);
     }
-    return new_legal_moves;
-    //return legal_moves;
+    return legal_moves;
 }
 
 function translate(orig, x, y) {
@@ -518,28 +415,139 @@ function add_notation(text) {
     render();
 }
 
-function pawns_moves(position, ind, color) {
+function pawn_moves(position, ind, color) {
+    let moves = [];
+    if(color == COLOR.WHITE) { // White pawn
+        // Forward moves
+        if(is_empty(position, translate(ind, 0, -1))){
+            moves.push(translate(ind, 0, -1));
+        }
+        if(47 < ind && ind < 56) { // if on original space
+            if(is_empty(position, translate(ind, 0, -2))){
+                moves.push(translate(ind, 0, -2));
+            }
+        }
+        
+        // Diagonal Moves
+        if(is_enemy_piece(position, translate(ind, 1, -1), color)) {
+            moves.push(translate(ind, 1, -1));
+        }
+        if(is_enemy_piece(position, translate(ind, -1, -1), color)) {
+            moves.push(translate(ind, -1, -1));
+        }
+    }
     
+    else if(color == COLOR.BLACK) { // Black Pawn
+        // Forward moves
+        if(is_empty(position, translate(ind, 0, 1))){
+            moves.push(translate(ind, 0, 1));
+        }
+        if(7 < ind && ind < 16) { // if on original space
+            if(is_empty(position, translate(ind, 0, 2))){
+                moves.push(translate(ind, 0, 2));
+            }
+        } 
+        
+        // Diagonal Moves
+        if(is_enemy_piece(position, translate(ind, 1, 1), color)) {
+            moves.push(translate(ind, 1, 1));
+        }
+        if(is_enemy_piece(position, translate(ind, -1, 1), color)) {
+            moves.push(translate(ind, -1, 1));
+        }
+    }
+    return moves;
 }
 
-function knights_moves(position, ind) {
-
+function knight_moves(position, ind) {
+    let moves = [];
+    let pairs = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
+    for(let i = 0; i < pairs.length; i++) {
+        for(let flip = 0; flip <= 1; flip++) {
+            let dest = translate(ind, pairs[i][flip], pairs[i][(flip + 1) % 2])
+            if(dest == -1) {
+                continue;
+            }
+            moves.push(dest);
+        }
+    }
+    return moves;
 }
 
-function bishops_moves(position, ind) {
-
+function bishop_moves(position, ind) {
+    moves = []
+    for(let xdiff = -1; xdiff <= 1; xdiff += 2){
+        for(let ydiff = -1; ydiff <= 1; ydiff += 2){
+            dest = translate(ind, xdiff, ydiff)
+            while(dest != -1){
+                moves.push(dest);
+                if(! is_empty(position, dest)){
+                    break;
+                }
+                dest = translate(dest, xdiff, ydiff);
+            }
+        }
+    }
+    return moves;
 }
 
-function rooks_moves(position, ind) {
-
+function rook_moves(position, ind) {
+    moves = []
+    for(let xdiff = -1; xdiff <= 1; xdiff += 2){
+        dest = translate(ind, xdiff, 0)
+        while(dest != -1){
+            moves.push(dest);
+            if(! is_empty(position, dest)){
+                break;
+            }
+            dest = translate(dest, xdiff, 0);
+        }
+    }
+    for(let ydiff = -1; ydiff <= 1; ydiff += 2){
+        dest = translate(ind, 0, ydiff)
+        while(dest != -1){
+            moves.push(dest);
+            if(! is_empty(position, dest)){
+                break;
+            }
+            dest = translate(dest, 0, ydiff);
+        }
+    }
+    return moves;
 }
 
-function queens_moves(position, ind) {
+function queen_moves(position, ind) {
+    moves = [];
+    for(let xdiff = -1; xdiff <= 1; xdiff += 1){
+        for(let ydiff = -1; ydiff <= 1; ydiff += 1){
+            if(xdiff == 0 && ydiff == 0){
+                continue;
+            }
 
+            dest = translate(ind, xdiff, ydiff)
+            while(dest != -1){
+                moves.push(dest);
+                if(! is_empty(position, dest)){
+                    break;
+                }
+                dest = translate(dest, xdiff, ydiff);
+            }
+        }
+    }
+    return moves;
 }
 
-function kings_moves(position, ind) {
-
+function king_moves(position, ind) {
+    moves = [];
+    for(let xdiff = -1; xdiff <= 1; xdiff += 1){
+        for(let ydiff = -1; ydiff <= 1; ydiff += 1){
+            dest = translate(ind, xdiff, ydiff)
+            if(dest != -1){
+                moves.push(dest);
+            }
+        }
+    }
+    return moves;
 }
 
 // Functions - Booleans
@@ -615,25 +623,6 @@ function is_check(position, turn) {
             }
         }
     }
-
-
-    /*
-    legal_moves = get_all_legal_moves(position, turn);
-    for(let i = 0; i < legal_moves.length; i++) {
-        legal_moves_for_this_piece = legal_moves[i];
-        for(let j = 0; j < legal_moves_for_this_piece.length; j++) {
-            piece_on_dest_square = position[legal_moves_for_this_piece[j]];
-            is_black_king = piece_on_dest_square == CHESS_PIECE.BLACK_KING
-            is_white_king = piece_on_dest_square == CHESS_PIECE.WHITE_KING
-            if(turn === COLOR.WHITE && is_white_king){
-                return true;
-            }
-            if(turn === COLOR.BLACK && is_black_king){
-                return true;
-            }
-        }
-    } */
-
     return false;
 }
 
