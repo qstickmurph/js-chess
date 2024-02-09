@@ -205,7 +205,7 @@ function move_piece(position, orig, dest, turn) {
     new_position = position.concat();
 
     if(is_legal_move(new_position, orig, dest, turn)) {
-        new_notation = generate_notation(new_position, orig, dest);
+        new_notation = generate_notation(new_position, orig, dest, turn);
         add_notation(new_notation);
         new_position[dest] = new_position[orig];
         new_position[orig] = CHESS_PIECE.NOTHING;
@@ -254,6 +254,7 @@ function reset_game() {
     board_flipped = false;
     game_over = false;
     selected_ind = -1;
+    last_played_move = [];
     notations = [];
     render();
 }
@@ -361,55 +362,167 @@ function ind_to_pos(ind) {
     return -1;
 }
 
-function generate_notation(position, orig, dest) {
-    orig_pos = ind_to_pos(orig);
-    dest_pos = ind_to_pos(dest);
+function generate_notation(position, orig, dest, turn) {
+    let orig_pos = ind_to_pos(orig);
+    let dest_pos = ind_to_pos(dest);
 
-    orig_notation = letters[orig_pos[0]] + nums[orig_pos[1]];
-    dest_notation = letters[dest_pos[0]] + nums[dest_pos[1]];
+    let piece_string = "";
+    switch(position[orig]) {
+        case CHESS_PIECE.BLACK_KNIGHT:
+        case CHESS_PIECE.WHITE_KNIGHT:
+            piece_string = "N";
+            break;
+        case CHESS_PIECE.BLACK_BISHOP:
+        case CHESS_PIECE.WHITE_BISHOP:
+            piece_string = "B";
+            break;
+        case CHESS_PIECE.BLACK_ROOK:
+        case CHESS_PIECE.WHITE_ROOK:
+            piece_string = "R";
+            break;
+        case CHESS_PIECE.BLACK_QUEEN:
+        case CHESS_PIECE.WHITE_QUEEN:
+            piece_string = "Q";
+            break;
+        case CHESS_PIECE.BLACK_KING:
+        case CHESS_PIECE.WHITE_KING:
+            piece_string = "K";
+            break;
+    }
 
+    let orig_string = "";
     if(is_pawn(position, orig)) {
-        if(is_empty(position, dest)) {
-            return dest_notation;
-        }else {
-            return orig_notation[0] + "x" + dest_notation
+        if(! is_empty(position,dest)) {
+            orig_string = letters[orig_pos[0]];
+        }
+    } else if(is_knight(position, orig)) {
+        knight_move_list = knight_moves(position, dest);
+        alert(knight_move_list);
+        let same_rank = false;
+        let same_file = false;
+        for(let i = 0; i < knight_move_list.length; i++) {
+            check_ind = knight_move_list[i];
+            if(check_ind == orig) { // Skip main knight
+                continue;
+            }
+            if(is_my_piece(position, check_ind, turn) && is_knight(position, check_ind)) {
+                check_pos = ind_to_pos(check_ind);
+                if(orig_pos[0] == check_pos[0]) {
+                    same_rank = true;
+                }
+                else if(orig_pos[1] == check_pos[1]) {
+                    same_file = true;
+                }
+            }
+        }
+
+        if(same_rank) {
+            orig_string += (letters[orig_pos[0]]);
+        }
+        if(same_file) {
+            orig_string += (nums[orig_pos[1]]);
+        }
+    } else if(is_bishop(position, orig)) {
+        bishop_move_list = bishop_moves(position, dest);
+        let same_rank = false;
+        let same_file = false;
+        for(let i = 0; i < bishop_move_list.length; i++) {
+            check_ind = bishop_move_list[i];
+            if(check_ind == orig) { // Skip main bishop
+                continue;
+            }
+            if(is_my_piece(position, check_ind, turn) && is_bishop(position, check_ind)) {
+                check_pos = ind_to_pos(check_ind);
+                if(orig_pos[0] == check_pos[0]) {
+                    same_rank = true;
+                }
+                else if(orig_pos[1] == check_pos[1]) {
+                    same_file = true;
+                }
+            }
+        }
+
+        if(same_rank) {
+            orig_string += (letters[orig_pos[0]]);
+        }
+        if(same_file) {
+            orig_string += (nums[orig_pos[1]]);
+        }
+    } else if(is_rook(position, orig)) {
+        rook_move_list = rook_moves(position, dest);
+        let same_rank = false;
+        let same_file = false;
+        for(let i = 0; i < rook_move_list.length; i++) {
+            check_ind = rook_move_list[i];
+            if(check_ind == orig) { // Skip main rook
+                continue;
+            }
+            if(is_my_piece(position, check_ind, turn) && is_rook(position, check_ind)) {
+                check_pos = ind_to_pos(check_ind);
+                if(orig_pos[0] == check_pos[0]) {
+                    same_rank = true;
+                }
+                else if(orig_pos[1] == check_pos[1]) {
+                    same_file = true;
+                }
+            }
+        }
+
+        if(same_rank) {
+            orig_string += (letters[orig_pos[0]]);
+        }
+        if(same_file) {
+            orig_string += (nums[orig_pos[1]]);
+        }
+    } else if(is_queen(position, orig)) {
+        queen_move_list = queen_moves(position, dest);
+        let same_rank = false;
+        let same_file = false;
+        for(let i = 0; i < queen_move_list.length; i++) {
+            check_ind = queen_move_list[i];
+            if(check_ind == orig) { // Skip main queen
+                continue;
+            }
+            if(is_my_piece(position, check_ind, turn) && is_queen(position, check_ind)) {
+                check_pos = ind_to_pos(check_ind);
+                if(orig_pos[0] == check_pos[0]) {
+                    same_rank = true;
+                }
+                else if(orig_pos[1] == check_pos[1]) {
+                    same_file = true;
+                }
+            }
+        }
+
+        if(same_rank) {
+            orig_string += (letters[orig_pos[0]]);
+        }
+        if(same_file) {
+            orig_string += (nums[orig_pos[1]]);
         }
     }
-    if(is_knight(position, orig)) {
-        if(is_empty(position, dest)) {
-            return "N" + dest_notation;
-        }else {
-            return "Nx" + dest_notation
+
+    let captures_string = ""
+    if(! is_empty(position, dest)) {
+        captures_string = "x";
+    }
+
+    let dest_string = letters[dest_pos[0]] + nums[dest_pos[1]];
+
+    let check_string = ""
+    proto_position = position.concat();
+    proto_position[dest] = proto_position[orig];
+    proto_position[orig] = CHESS_PIECE.NOTHING;
+    opposite_turn = (turn == COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+    if(is_check(proto_position, opposite_turn)) {
+        check_string = "+";
+        if(is_checkmate(proto_position, opposite_turn)) {
+            check_string = "#";
         }
     }
-    if(is_bishop(position, orig)) {
-        if(is_empty(position, dest)) {
-            return "B" + dest_notation;
-        }else {
-            return "Bx" + dest_notation
-        }
-    }
-    if(is_rook(position, orig)) {
-        if(is_empty(position, dest)) {
-            return "R" + dest_notation;
-        }else {
-            return "Rx" + dest_notation
-        }
-    }
-    if(is_queen(position, orig)) {
-        if(is_empty(position, dest)) {
-            return "Q" + dest_notation;
-        }else {
-            return "Qx" + dest_notation;
-        }
-    }
-    if(is_king(position, orig)) {
-        if(is_empty(position, dest)) {
-            return "K" + dest_notation;
-        }else {
-            return "Kx" + dest_notation
-        }
-    }
+
+    let notation = piece_string + orig_string + captures_string + dest_string + check_string;
+    return notation;
 }
 
 function add_notation(text) {
@@ -732,4 +845,3 @@ function is_empty(position, ind) {
     }
     return false;
 }
-
