@@ -25,6 +25,7 @@ const letters = "abcdefgh".split("");
 const nums = "87654321".split("");
 let position;
 let turn = COLOR.WHITE;
+let game_over = false;
 let board_flipped = false;
 let selected_ind = -1;
 let notations = [];
@@ -158,7 +159,7 @@ function on_click_square(e) {
         } else {
             e.currentTarget.classList.add("hl");
         }
-    }else { //left click to select a piece
+    }else if(! game_over) { //left click to select a piece
         let ind = chess_squares.indexOf(e.currentTarget);
 
         if(is_my_piece(position, ind, turn)) { // if piece is same color as current turn, select it
@@ -191,19 +192,26 @@ function get_icon_file(piece) {
 }
 
 function move_piece(position, orig, dest, turn) {
-    if(orig === -1) {
+    if(orig === -1 || game_over) {
         return position;
     }
 
     new_position = position.concat();
 
     if(is_legal_move(new_position, orig, dest, turn)) {
-        new_notation = generate_notation(orig, dest);
+        new_notation = generate_notation(new_position, orig, dest);
         add_notation(new_notation);
         new_position[dest] = new_position[orig];
         new_position[orig] = CHESS_PIECE.NOTHING;
         enemy_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
         if(is_check(new_position, enemy_turn)){
+            if(is_checkmate(new_position, enemy_turn)) {
+                winning_color = (turn === COLOR.WHITE) ? "White" : "Black";
+                //alert(`Checkmate! $(winning_color) wins!`);
+                alert(`Checkmate! ${winning_color} wins!`);
+                game_over = true;
+                return new_position;
+            }
             alert("Check!");
         }
         swap_turn();
@@ -237,6 +245,8 @@ function reset_game() {
     ];
     turn = COLOR.WHITE;
     board_flipped = false;
+    game_over = false;
+    selected_ind = -1;
     notations = [];
     render();
 }
@@ -247,14 +257,17 @@ function offer_draw() {
 
 function resign() {
     winning_color = (turn === COLOR.WHITE) ? "Black" : "White";
-    alert(`Game Over! $(winning_color) wins!`);
+    alert(`Game Over! ${winning_color} wins!`);
     reset_game();
 }
 
 function get_all_legal_moves(position, turn) {
     let legal_moves = []
     for(let i = 0; i < position.length; i++) {
-        legal_moves.push(get_legal_moves(position, i, turn));
+        legal_moves_for_i = get_legal_moves(position, i, turn)
+        for(let j = 0; j < legal_moves_for_i.length; j++) {
+            legal_moves.push([i, legal_moves_for_i[j]]);
+        }
     }
     return legal_moves;
 }
@@ -399,22 +412,17 @@ function get_legal_moves(position, ind, turn) {
 
     // TODO: If in Check, remove all options that don't remove check
     new_legal_moves = []
-    if(is_check(position, turn)) {
-        for(let i = 0; i < legal_moves.length; i++) {
-            dest = legal_moves[i];
-            proto_position = position.concat();
-            proto_position[dest] = proto_position[ind];
-            proto_position[ind] = CHESS_PIECE.NOTHING;
-            opposite_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+    for(let i = 0; i < legal_moves.length; i++) {
+        dest = legal_moves[i];
+        proto_position = position.concat();
+        proto_position[dest] = proto_position[ind];
+        proto_position[ind] = CHESS_PIECE.NOTHING;
+        opposite_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
 
-            if(! is_check(proto_position, turn)) {
-                new_legal_moves.push(dest);
-            }
+        if(! is_check(proto_position, turn)) {
+            new_legal_moves.push(dest);
         }
-    } else {
-        return legal_moves;
     }
-
     return new_legal_moves;
     //return legal_moves;
 }
@@ -529,7 +537,7 @@ function kings_moves(position, ind) {
 
 }
 
-// Functions - Checks
+// Functions - Booleans
 function is_check(position, turn) {
     // Find King
     king_piece = (turn == COLOR.WHITE) ? CHESS_PIECE.WHITE_KING : CHESS_PIECE.BLACK_KING;
@@ -624,7 +632,10 @@ function is_check(position, turn) {
     return false;
 }
 
-function is_checkmate() {
+function is_checkmate(position, turn) {
+    if(is_check(position, turn) && get_all_legal_moves(position, turn).length == 0) {
+        return true;
+    }
     return false;
 }
 
