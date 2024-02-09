@@ -30,6 +30,8 @@ let board_flipped = false;
 let selected_ind = -1;
 let last_played_move = [];
 let notations = [];
+let black_king_moved = false;
+let white_king_moved = false;
 
 // Global Variables - DOM
 let chess_board;
@@ -417,46 +419,42 @@ function add_notation(text) {
 
 function pawn_moves(position, ind, color) {
     let moves = [];
-    if(color == COLOR.WHITE) { // White pawn
-        // Forward moves
-        if(is_empty(position, translate(ind, 0, -1))){
-            moves.push(translate(ind, 0, -1));
-        }
-        if(48 <= ind && ind <= 55) { // if on original space
-            if(is_empty(position, translate(ind, 0, -2))){
-                moves.push(translate(ind, 0, -2));
-            }
-        }
-        
-        // Diagonal Moves
-        if(is_enemy_piece(position, translate(ind, 1, -1), color)) {
-            moves.push(translate(ind, 1, -1));
-        }
-        if(is_enemy_piece(position, translate(ind, -1, -1), color)) {
-            moves.push(translate(ind, -1, -1));
+    let ydir = (color == COLOR.WHITE) ? -1 : 1
+
+    // Forward moves
+    if(is_empty(position, translate(ind, 0, ydir))){
+        moves.push(translate(ind, 0, ydir));
+    }
+    if(   (color == COLOR.WHITE && 48 <= ind && ind <= 55)
+       || (color == COLOR.BLACK **  8 <= ind && ind <= 15) ) { // if on original space
+        if(is_empty(position, translate(ind, 0, 2*ydir))){
+            moves.push(translate(ind, 0, 2*ydir));
         }
     }
     
-    else if(color == COLOR.BLACK) { // Black Pawn
-        // Forward moves
-        if(is_empty(position, translate(ind, 0, 1))){
-            moves.push(translate(ind, 0, 1));
-        }
-        if(8 <= ind && ind <= 15) { // if on original space
-            if(is_empty(position, translate(ind, 0, 2))){
-                moves.push(translate(ind, 0, 2));
-            }
-        } 
-        
-        // Diagonal Moves
-        if(is_enemy_piece(position, translate(ind, 1, 1), color)) {
-            moves.push(translate(ind, 1, 1));
-        }
-        if(is_enemy_piece(position, translate(ind, -1, 1), color)) {
-            moves.push(translate(ind, -1, 1));
-        }
+    // Diagonal Moves
+    if(is_enemy_piece(position, translate(ind, 1, ydir), color)) {
+        moves.push(translate(ind, 1, ydir));
     }
+    if(is_enemy_piece(position, translate(ind, -1, ydir), color)) {
+        moves.push(translate(ind, -1, ydir));
+    }
+   
     return moves;
+}
+
+function pawn_captures_from_here(position, ind, color) {
+    let origins = [];
+    let ydir = (color == COLOR.WHITE) ? 1 : -1;
+    for(let xdiff = -1; xdiff <= 1; xdiff += 2) {
+        let dest = translate(ind, xdiff, ydir);
+        if(dest == -1) {
+            continue;
+        }
+        origins.push(dest);
+    }
+
+    return origins;
 }
 
 function knight_moves(position, ind) {
@@ -564,6 +562,15 @@ function is_check(position, turn) {
     // Check all of the piece moves away
     let check_ind
     // Pawn moves (manual)
+    let enemy_color = (turn == COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+    let pawn_move_list = pawn_captures_from_here(position, king_ind, enemy_color);
+    for(let i = 0; i < pawn_move_list.length; i++) {
+        check_ind = pawn_move_list[i];
+        if(is_enemy_piece(position, check_ind, turn) && is_pawn(position, check_ind)) {
+            return true;
+        }
+    }
+    /*
     let enemy_pawn_ydiff = (turn == COLOR.WHITE) ? -1 : 1;
     for(let xdiff = -1; xdiff <= 1; xdiff += 2) {
         check_ind = translate(king_ind, xdiff, enemy_pawn_ydiff);
@@ -573,7 +580,7 @@ function is_check(position, turn) {
         if(is_enemy_piece(position, check_ind, turn) && is_pawn(position, check_ind)){
             return true;
         }
-    }
+    } */
     // Knight moves
     let knight_move_list = knight_moves(position, king_ind);
     for(let i = 0; i < knight_move_list.length; i++) {
