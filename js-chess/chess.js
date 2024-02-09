@@ -213,7 +213,6 @@ function move_piece(position, orig, dest, turn) {
         if(is_check(new_position, enemy_turn)){
             if(is_checkmate(new_position, enemy_turn)) {
                 winning_color = (turn === COLOR.WHITE) ? "White" : "Black";
-                //alert(`Checkmate! $(winning_color) wins!`);
                 alert(`Checkmate! ${winning_color} wins!`);
                 game_over = true;
                 return new_position;
@@ -397,7 +396,6 @@ function generate_notation(position, orig, dest, turn) {
         }
     } else if(is_knight(position, orig)) {
         knight_move_list = knight_moves(position, dest);
-        alert(knight_move_list);
         let same_rank = false;
         let same_file = false;
         for(let i = 0; i < knight_move_list.length; i++) {
