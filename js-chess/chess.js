@@ -567,6 +567,9 @@ function is_check(position, turn) {
     let enemy_pawn_ydiff = (turn == COLOR.WHITE) ? -1 : 1;
     for(let xdiff = -1; xdiff <= 1; xdiff += 2) {
         check_ind = translate(king_ind, xdiff, enemy_pawn_ydiff);
+        if(check_ind == -1) {
+            continue;
+        }
         if(is_enemy_piece(position, check_ind, turn) && is_pawn(position, check_ind)){
             return true;
         }
