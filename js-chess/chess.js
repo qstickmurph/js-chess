@@ -23,8 +23,8 @@ const COLOR = Object.freeze({
 // Global Variables - Data
 const letters = "abcdefgh".split("");
 const nums = "87654321".split("");
-let position;
-let turn = COLOR.WHITE;
+let current_position;
+let current_turn = COLOR.WHITE;
 let game_over = false;
 let board_flipped = false;
 let selected_ind = -1;
@@ -96,7 +96,7 @@ function render() {
 
 function show_position() {
     for(let i = 0; i < chess_squares.length; i++) {
-        curr_piece= position[i]
+        curr_piece= current_position[i]
         curr_square = chess_squares[i]
 
         while(curr_square.firstChild) {
@@ -166,10 +166,10 @@ function on_click_square(e) {
     }else if(! game_over) { //left click to select a piece
         let ind = chess_squares.indexOf(e.currentTarget);
 
-        if(is_my_piece(position, ind, turn)) { // if piece is same color as current turn, select it
+        if(is_my_piece(current_position, ind, current_turn)) { // if piece is same color as current turn, select it
             selected_ind = ind;
         } else {// otherwise, attempt to move the selected piece
-            position = move_piece(position, selected_ind, ind, turn);
+            current_position = move_piece(current_position, selected_ind, ind, current_turn);
         }
     }
 
@@ -228,7 +228,7 @@ function move_piece(position, orig, dest, turn) {
 }
 
 function swap_turn() {
-    turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+    current_turn = (current_turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
 }
 
 function flip_board() {
@@ -237,7 +237,7 @@ function flip_board() {
 }
 
 function reset_game() {
-    position = 
+    current_position = 
     [
         CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
         CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,  CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN, 
@@ -248,7 +248,7 @@ function reset_game() {
         CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,
         CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
     ];
-    turn = COLOR.WHITE;
+    current_turn = COLOR.WHITE;
     board_flipped = false;
     game_over = false;
     selected_ind = -1;
@@ -311,7 +311,7 @@ function get_legal_moves(position, ind, turn) {
     // Remove illegal moves
     legal_moves = []
     for(let i = 0; i < all_moves.length; i++) {
-        dest = all_moves[i];
+        let dest = all_moves[i];
 
         if(is_my_piece(position, dest, turn)) {
             continue;
@@ -345,7 +345,7 @@ function translate(orig, x, y) {
 }
 
 function pos_to_ind(x, y) {
-    dest = x + 8*y;
+    let dest = x + 8*y;
     if(0 <= dest && dest <= 63) {
         return dest;
     }
@@ -422,7 +422,7 @@ function pawn_moves(position, ind, color) {
         if(is_empty(position, translate(ind, 0, -1))){
             moves.push(translate(ind, 0, -1));
         }
-        if(47 < ind && ind < 56) { // if on original space
+        if(48 <= ind && ind <= 55) { // if on original space
             if(is_empty(position, translate(ind, 0, -2))){
                 moves.push(translate(ind, 0, -2));
             }
@@ -442,7 +442,7 @@ function pawn_moves(position, ind, color) {
         if(is_empty(position, translate(ind, 0, 1))){
             moves.push(translate(ind, 0, 1));
         }
-        if(7 < ind && ind < 16) { // if on original space
+        if(8 <= ind && ind <= 15) { // if on original space
             if(is_empty(position, translate(ind, 0, 2))){
                 moves.push(translate(ind, 0, 2));
             }
@@ -553,76 +553,63 @@ function king_moves(position, ind) {
 // Functions - Booleans
 function is_check(position, turn) {
     // Find King
-    king_piece = (turn == COLOR.WHITE) ? CHESS_PIECE.WHITE_KING : CHESS_PIECE.BLACK_KING;
-    king_ind = -1;
+    let king_piece = (turn == COLOR.WHITE) ? CHESS_PIECE.WHITE_KING : CHESS_PIECE.BLACK_KING;
+    let king_ind = -1;
     for(let i = 0; i < position.length; i++) {
         if(position[i] == king_piece) {
             king_ind = i;
             break;
         }
     }
-    // Check in each of the 8 directions
-    for(let xdiff = -1; xdiff <= 1; xdiff++) { // 
-        for(let ydiff = -1; ydiff <= 1; ydiff++) { // 
-            for(let dist = 1; dist <= 8; dist++) { // 
-                ind = translate(king_ind, dist*xdiff, dist*ydiff);
-                if(ind === -1) { // Break if off the board
-                    break;
-                }
-                if(is_my_piece(position, ind, turn)) { // Break if ran into friend
-                    break;
-                }
-                if(is_empty(position, ind)) { // Continue if empty
-                    continue;
-                }
+    // Check all of the piece moves away
+    let check_ind
+    // Pawn moves (manual)
+    let enemy_pawn_ydiff = (turn == COLOR.WHITE) ? -1 : 1;
+    for(let xdiff = -1; xdiff <= 1; xdiff += 2) {
+        check_ind = translate(king_ind, xdiff, enemy_pawn_ydiff);
+        if(is_enemy_piece(position, check_ind, turn) && is_pawn(position, check_ind)){
+            return true;
+        }
+    }
+    // Knight moves
+    let knight_move_list = knight_moves(position, king_ind);
+    for(let i = 0; i < knight_move_list.length; i++) {
+        check_ind = knight_move_list[i];
+        if(is_enemy_piece(position, check_ind, turn) && is_knight(position, check_ind)) {
+            return true;
+        }
+    }
+    // Bishop moves (or Queen)
+    let bishop_move_list = bishop_moves(position, king_ind);
+    for(let i = 0; i < bishop_move_list.length; i++) {
+        check_ind = bishop_move_list[i];
+        if(is_enemy_piece(position, check_ind, turn) && is_bishop(position, check_ind)) {
+            return true;
+        }
+        if(is_enemy_piece(position, check_ind, turn) && is_queen(position, check_ind)) {
+            return true;
+        }
+    }
+    // Rook moves (or Queen)
+    let rook_move_list = rook_moves(position, king_ind);
+    for(let i = 0; i < rook_move_list.length; i++) {
+        check_ind = rook_move_list[i];
+        if(is_enemy_piece(position, check_ind, turn) && is_rook(position, check_ind)) {
+            return true;
+        }
+        if(is_enemy_piece(position, check_ind, turn) && is_queen(position, check_ind)) {
+            return true;
+        }
+    }
+    // King moves (for prevention of self-check)
+    let king_move_list = king_moves(position, king_ind);
+    for(let i = 0; i < king_move_list.length; i++) {
+        check_ind = king_move_list[i];
+        if(is_enemy_piece(position, check_ind, turn) && is_king(position, check_ind)) {
+            return true;
+        }
+    }
 
-                // Check various pieces
-                if(is_pawn(position, ind)) {
-                    if(turn === COLOR.WHITE) { // Pawn is Black
-                        if(ydiff === -1 && xdiff != 0) {
-                            return true;
-                        }
-                    } else { // Pawn is white
-                        if(ydiff ===  1 && xdiff != 0) {
-                            return true;
-                        }
-                    }
-                    break; 
-                }
-                if(is_bishop(position, ind)) {
-                    if(Math.abs(ydiff) === Math.abs(xdiff)) {
-                        return true;
-                    }
-                    break; 
-                }
-                if(is_rook(position, ind)) {
-                    if(xdiff === 0 || ydiff === 0) {
-                        return true;
-                    }
-                    break; 
-                }
-                if(is_queen(position, ind)) {
-                    return true;
-                }
-            }
-        }
-    }
-    // Check at each knight's move away
-    let pairs = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
-    for(let i = 0; i < pairs.length; i++) {
-        for(let flip = 0; flip <= 1; flip++) {
-            let ind = translate(king_ind, pairs[i][flip], pairs[i][(flip + 1) % 2])
-            if(ind == -1) {
-                continue;
-            }
-            if(is_my_piece(position, ind, turn)) {
-                continue;
-            }
-            if(is_knight(position, ind)) {
-                return true;
-            }
-        }
-    }
     return false;
 }
 
@@ -643,21 +630,21 @@ function is_my_piece(position, ind, turn) {
     }
     if(turn === COLOR.WHITE) {
         return (
-               position[ind] === CHESS_PIECE.WHITE_PAWN
-            || position[ind] === CHESS_PIECE.WHITE_KNIGHT
-            || position[ind] === CHESS_PIECE.WHITE_BISHOP
-            || position[ind] === CHESS_PIECE.WHITE_ROOK
-            || position[ind] === CHESS_PIECE.WHITE_QUEEN
-            || position[ind] === CHESS_PIECE.WHITE_KING
+               position[ind] == CHESS_PIECE.WHITE_PAWN
+            || position[ind] == CHESS_PIECE.WHITE_KNIGHT
+            || position[ind] == CHESS_PIECE.WHITE_BISHOP
+            || position[ind] == CHESS_PIECE.WHITE_ROOK
+            || position[ind] == CHESS_PIECE.WHITE_QUEEN
+            || position[ind] == CHESS_PIECE.WHITE_KING
         );
     } else {
         return (
-               position[ind] === CHESS_PIECE.BLACK_PAWN
-            || position[ind] === CHESS_PIECE.BLACK_KNIGHT
-            || position[ind] === CHESS_PIECE.BLACK_BISHOP
-            || position[ind] === CHESS_PIECE.BLACK_ROOK
-            || position[ind] === CHESS_PIECE.BLACK_QUEEN
-            || position[ind] === CHESS_PIECE.BLACK_KING
+               position[ind] == CHESS_PIECE.BLACK_PAWN
+            || position[ind] == CHESS_PIECE.BLACK_KNIGHT
+            || position[ind] == CHESS_PIECE.BLACK_BISHOP
+            || position[ind] == CHESS_PIECE.BLACK_ROOK
+            || position[ind] == CHESS_PIECE.BLACK_QUEEN
+            || position[ind] == CHESS_PIECE.BLACK_KING
         );
     }
 }
@@ -668,21 +655,21 @@ function is_enemy_piece(position, ind, turn) {
     }
     if(turn === COLOR.WHITE) {
         return (
-               position[ind] === CHESS_PIECE.BLACK_PAWN
-            || position[ind] === CHESS_PIECE.BLACK_KNIGHT
-            || position[ind] === CHESS_PIECE.BLACK_BISHOP
-            || position[ind] === CHESS_PIECE.BLACK_ROOK
-            || position[ind] === CHESS_PIECE.BLACK_QUEEN
-            || position[ind] === CHESS_PIECE.BLACK_KING
+               position[ind] == CHESS_PIECE.BLACK_PAWN
+            || position[ind] == CHESS_PIECE.BLACK_KNIGHT
+            || position[ind] == CHESS_PIECE.BLACK_BISHOP
+            || position[ind] == CHESS_PIECE.BLACK_ROOK
+            || position[ind] == CHESS_PIECE.BLACK_QUEEN
+            || position[ind] == CHESS_PIECE.BLACK_KING
         );
     } else {
         return (
-               position[ind] === CHESS_PIECE.WHITE_PAWN
-            || position[ind] === CHESS_PIECE.WHITE_KNIGHT
-            || position[ind] === CHESS_PIECE.WHITE_BISHOP
-            || position[ind] === CHESS_PIECE.WHITE_ROOK
-            || position[ind] === CHESS_PIECE.WHITE_QUEEN
-            || position[ind] === CHESS_PIECE.WHITE_KING
+               position[ind] == CHESS_PIECE.WHITE_PAWN
+            || position[ind] == CHESS_PIECE.WHITE_KNIGHT
+            || position[ind] == CHESS_PIECE.WHITE_BISHOP
+            || position[ind] == CHESS_PIECE.WHITE_ROOK
+            || position[ind] == CHESS_PIECE.WHITE_QUEEN
+            || position[ind] == CHESS_PIECE.WHITE_KING
         );
     }
 }
