@@ -161,10 +161,10 @@ function on_click_square(e) {
     }else { //left click to select a piece
         let ind = chess_squares.indexOf(e.currentTarget);
 
-        if(is_my_piece(ind)) { // if piece is same color as current turn, select it
+        if(is_my_piece(position, ind, turn)) { // if piece is same color as current turn, select it
             selected_ind = ind;
         } else {// otherwise, attempt to move the selected piece
-            move_piece(selected_ind, ind);
+            position = move_piece(position, selected_ind, ind, turn);
         }
     }
 
@@ -190,23 +190,28 @@ function get_icon_file(piece) {
     return null;
 }
 
-function move_piece(orig, dest) {
+function move_piece(position, orig, dest, turn) {
     if(orig === -1) {
-        return -1;
+        return position;
     }
 
-    if(is_legal_move(orig, dest)) {
+    new_position = position.concat();
+
+    if(is_legal_move(new_position, orig, dest, turn)) {
         new_notation = generate_notation(orig, dest);
         add_notation(new_notation);
-        position[dest] = position[orig];
-        position[orig] = CHESS_PIECE.NOTHING;
-        if(is_check()){
+        new_position[dest] = new_position[orig];
+        new_position[orig] = CHESS_PIECE.NOTHING;
+        enemy_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+        if(is_check(new_position, enemy_turn)){
             alert("Check!");
         }
         swap_turn();
     }
 
     selected_ind = -1;
+
+    return new_position;
 }
 
 function swap_turn() {
@@ -246,18 +251,18 @@ function resign() {
     reset_game();
 }
 
-function get_all_legal_moves() {
+function get_all_legal_moves(position, turn) {
     let legal_moves = []
     for(let i = 0; i < position.length; i++) {
-        legal_moves.push(get_legal_moves(i));
+        legal_moves.push(get_legal_moves(position, i, turn));
     }
     return legal_moves;
 }
 
-function get_legal_moves(ind) {
+function get_legal_moves(position, ind, turn) {
     let legal_moves = [];
     // Nothing or Enemy
-    if(! is_my_piece(ind)) {
+    if(! is_my_piece(position, ind, turn)) {
         legal_moves = [];
     } 
     // White Pawn
@@ -273,10 +278,10 @@ function get_legal_moves(ind) {
         }
         
         // Diagonal Moves
-        if(is_enemy_piece(translate(ind, 1, -1))) {
+        if(is_enemy_piece(position, translate(ind, 1, -1), turn)) {
             legal_moves.push(translate(ind, 1, -1));
         }
-        if(is_enemy_piece(translate(ind, -1, -1))) {
+        if(is_enemy_piece(position, translate(ind, -1, -1), turn)) {
             legal_moves.push(translate(ind, -1, -1));
         }
     }
@@ -293,10 +298,10 @@ function get_legal_moves(ind) {
         } 
         
         // Diagonal Moves
-        if(is_enemy_piece(translate(ind, 1, 1))) {
+        if(is_enemy_piece(position, translate(ind, 1, 1), turn)) {
             legal_moves.push(translate(ind, 1, 1));
         }
-        if(is_enemy_piece(translate(ind, -1, 1))) {
+        if(is_enemy_piece(position, translate(ind, -1, 1), turn)) {
             legal_moves.push(translate(ind, -1, 1));
         }
     }
@@ -309,7 +314,7 @@ function get_legal_moves(ind) {
                 if(dest == -1) {
                     continue;
                 }
-                if(is_my_piece(dest)) {
+                if(is_my_piece(position, dest, turn)) {
                     continue;
                 }
                 legal_moves.push(dest);
@@ -322,11 +327,11 @@ function get_legal_moves(ind) {
             for(let ydiff = -1; ydiff <= 1; ydiff += 2){
                 dest = translate(ind, xdiff, ydiff)
                 while(dest != -1){
-                    if(is_my_piece(dest)){
+                    if(is_my_piece(position, dest, turn)){
                         break;
                     }
                     legal_moves.push(dest);
-                    if(is_enemy_piece(dest)){
+                    if(is_enemy_piece(position, dest, turn)){
                         break;
                     }
                     dest = translate(dest, xdiff, ydiff);
@@ -339,11 +344,11 @@ function get_legal_moves(ind) {
         for(let xdiff = -1; xdiff <= 1; xdiff += 1){
             dest = translate(ind, xdiff, 0)
             while(dest != -1){
-                if(is_my_piece(dest)){
+                if(is_my_piece(position, dest, turn)){
                     break;
                 }
                 legal_moves.push(dest);
-                if(is_enemy_piece(dest)){
+                if(is_enemy_piece(position, dest, turn)){
                     break;
                 }
                 dest = translate(dest, xdiff, 0);
@@ -352,11 +357,10 @@ function get_legal_moves(ind) {
         for(let ydiff = -1; ydiff <= 1; ydiff += 1){
             dest = translate(ind, 0, ydiff)
             while(dest != -1){
-                if(is_my_piece(dest)){
+                if(is_my_piece(position, dest, turn)){
                     break;
-                }
-                legal_moves.push(dest);
-                if(is_enemy_piece(dest)){
+                } legal_moves.push(dest);
+                if(is_enemy_piece(position, dest, turn)){
                     break;
                 }
                 dest = translate(dest, 0, ydiff);
@@ -369,11 +373,11 @@ function get_legal_moves(ind) {
             for(let ydiff = -1; ydiff <= 1; ydiff += 1){
                 dest = translate(ind, xdiff, ydiff)
                 while(dest != -1){
-                    if(is_my_piece(dest)){
+                    if(is_my_piece(position, dest, turn)){
                         break;
                     }
                     legal_moves.push(dest);
-                    if(is_enemy_piece(dest)){
+                    if(is_enemy_piece(position, dest, turn)){
                         break;
                     }
                     dest = translate(dest, xdiff, ydiff);
@@ -386,7 +390,7 @@ function get_legal_moves(ind) {
         for(let xdiff = -1; xdiff <= 1; xdiff += 1){
             for(let ydiff = -1; ydiff <= 1; ydiff += 1){
                 dest = translate(ind, xdiff, ydiff)
-                if(dest != -1 && ! is_my_piece(dest)){
+                if(dest != -1 && ! is_my_piece(position, dest, turn)){
                     legal_moves.push(dest);
                 }
             }
@@ -394,8 +398,25 @@ function get_legal_moves(ind) {
     }
 
     // TODO: If in Check, remove all options that don't remove check
+    new_legal_moves = []
+    if(is_check(position, turn)) {
+        for(let i = 0; i < legal_moves.length; i++) {
+            dest = legal_moves[i];
+            proto_position = position.concat();
+            proto_position[dest] = proto_position[ind];
+            proto_position[ind] = CHESS_PIECE.NOTHING;
+            opposite_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
 
-    return legal_moves;
+            if(! is_check(proto_position, turn)) {
+                new_legal_moves.push(dest);
+            }
+        }
+    } else {
+        return legal_moves;
+    }
+
+    return new_legal_moves;
+    //return legal_moves;
 }
 
 function translate(orig, x, y) {
@@ -428,50 +449,50 @@ function ind_to_pos(ind) {
     return -1;
 }
 
-function generate_notation(orig, dest) {
+function generate_notation(position, orig, dest) {
     orig_pos = ind_to_pos(orig);
     dest_pos = ind_to_pos(dest);
 
     orig_notation = letters[orig_pos[0]] + nums[orig_pos[1]];
     dest_notation = letters[dest_pos[0]] + nums[dest_pos[1]];
 
-    if(is_pawn(orig)) {
-        if(is_empty(dest)) {
+    if(is_pawn(position, orig)) {
+        if(is_empty(position, dest)) {
             return dest_notation;
         }else {
             return orig_notation[0] + "x" + dest_notation
         }
     }
-    if(is_knight(orig)) {
-        if(is_empty(dest)) {
+    if(is_knight(position, orig)) {
+        if(is_empty(position, dest)) {
             return "N" + dest_notation;
         }else {
             return "Nx" + dest_notation
         }
     }
-    if(is_bishop(orig)) {
-        if(is_empty(dest)) {
+    if(is_bishop(position, orig)) {
+        if(is_empty(position, dest)) {
             return "B" + dest_notation;
         }else {
             return "Bx" + dest_notation
         }
     }
-    if(is_rook(orig)) {
-        if(is_empty(dest)) {
+    if(is_rook(position, orig)) {
+        if(is_empty(position, dest)) {
             return "R" + dest_notation;
         }else {
             return "Rx" + dest_notation
         }
     }
-    if(is_queen(orig)) {
-        if(is_empty(dest)) {
+    if(is_queen(position, orig)) {
+        if(is_empty(position, dest)) {
             return "Q" + dest_notation;
         }else {
             return "Qx" + dest_notation;
         }
     }
-    if(is_king(orig)) {
-        if(is_empty(dest)) {
+    if(is_king(position, orig)) {
+        if(is_empty(position, dest)) {
             return "K" + dest_notation;
         }else {
             return "Kx" + dest_notation
@@ -484,20 +505,122 @@ function add_notation(text) {
     render();
 }
 
+function pawns_moves(position, ind, color) {
+    
+}
+
+function knights_moves(position, ind) {
+
+}
+
+function bishops_moves(position, ind) {
+
+}
+
+function rooks_moves(position, ind) {
+
+}
+
+function queens_moves(position, ind) {
+
+}
+
+function kings_moves(position, ind) {
+
+}
+
 // Functions - Checks
-function is_check() {
-    legal_moves = get_all_legal_moves();
-    for(let i = 0; i < legal_moves.length; i++) {
-        legal_moves_for_this_piece = legal_moves[i];
-        for(let j = 0; j < legal_moves_for_this_piece.length; j++) {
-            piece_on_dest_square = position[legal_moves_for_this_piece[j]];
-            is_black_king = turn === COLOR.WHITE && piece_on_dest_square == CHESS_PIECE.BLACK_KING
-            is_white_king = turn === COLOR.BLACK && piece_on_dest_square == CHESS_PIECE.WHITE_KING
-            if(is_black_king || is_white_king){
+function is_check(position, turn) {
+    // Find King
+    king_piece = (turn == COLOR.WHITE) ? CHESS_PIECE.WHITE_KING : CHESS_PIECE.BLACK_KING;
+    king_ind = -1;
+    for(let i = 0; i < position.length; i++) {
+        if(position[i] == king_piece) {
+            king_ind = i;
+            break;
+        }
+    }
+    // Check in each of the 8 directions
+    for(let xdiff = -1; xdiff <= 1; xdiff++) { // 
+        for(let ydiff = -1; ydiff <= 1; ydiff++) { // 
+            for(let dist = 1; dist <= 8; dist++) { // 
+                ind = translate(king_ind, dist*xdiff, dist*ydiff);
+                if(ind === -1) { // Break if off the board
+                    break;
+                }
+                if(is_my_piece(position, ind, turn)) { // Break if ran into friend
+                    break;
+                }
+                if(is_empty(position, ind)) { // Continue if empty
+                    continue;
+                }
+
+                // Check various pieces
+                if(is_pawn(position, ind)) {
+                    if(turn === COLOR.WHITE) { // Pawn is Black
+                        if(ydiff === -1 && xdiff != 0) {
+                            return true;
+                        }
+                    } else { // Pawn is white
+                        if(ydiff ===  1 && xdiff != 0) {
+                            return true;
+                        }
+                    }
+                    break; 
+                }
+                if(is_bishop(position, ind)) {
+                    if(Math.abs(ydiff) === Math.abs(xdiff)) {
+                        return true;
+                    }
+                    break; 
+                }
+                if(is_rook(position, ind)) {
+                    if(xdiff === 0 || ydiff === 0) {
+                        return true;
+                    }
+                    break; 
+                }
+                if(is_queen(position, ind)) {
+                    return true;
+                }
+            }
+        }
+    }
+    // Check at each knight's move away
+    let pairs = [[1, 2], [-1, 2], [1, -2], [-1, -2]]
+    for(let i = 0; i < pairs.length; i++) {
+        for(let flip = 0; flip <= 1; flip++) {
+            let ind = translate(king_ind, pairs[i][flip], pairs[i][(flip + 1) % 2])
+            if(ind == -1) {
+                continue;
+            }
+            if(is_my_piece(position, ind, turn)) {
+                continue;
+            }
+            if(is_knight(position, ind)) {
                 return true;
             }
         }
     }
+
+
+    /*
+    legal_moves = get_all_legal_moves(position, turn);
+    for(let i = 0; i < legal_moves.length; i++) {
+        legal_moves_for_this_piece = legal_moves[i];
+        for(let j = 0; j < legal_moves_for_this_piece.length; j++) {
+            piece_on_dest_square = position[legal_moves_for_this_piece[j]];
+            is_black_king = piece_on_dest_square == CHESS_PIECE.BLACK_KING
+            is_white_king = piece_on_dest_square == CHESS_PIECE.WHITE_KING
+            if(turn === COLOR.WHITE && is_white_king){
+                return true;
+            }
+            if(turn === COLOR.BLACK && is_black_king){
+                return true;
+            }
+        }
+    } */
+
     return false;
 }
 
@@ -505,11 +628,11 @@ function is_checkmate() {
     return false;
 }
 
-function is_legal_move(orig, dest) {
-    return get_legal_moves(orig).includes(dest);
+function is_legal_move(position, orig, dest, turn) {
+    return get_legal_moves(position, orig, turn).includes(dest);
 }
 
-function is_my_piece(ind) {
+function is_my_piece(position, ind, turn) {
     if(ind < 0 || ind > 63) {
         return false;
     }
@@ -534,7 +657,7 @@ function is_my_piece(ind) {
     }
 }
 
-function is_enemy_piece(ind) {
+function is_enemy_piece(position, ind, turn) {
     if(ind < 0 || ind > 63) {
         return false;
     }
@@ -559,50 +682,50 @@ function is_enemy_piece(ind) {
     }
 }
 
-function is_pawn(ind) {
-    if(position[ind] === CHESS_PIECE.BLACK_PAWN || position[ind] === CHESS_PIECE.WHITE_PAWN) {
+function is_pawn(position, ind) {
+    if(position[ind] == CHESS_PIECE.BLACK_PAWN || position[ind] == CHESS_PIECE.WHITE_PAWN) {
         return true;
     }
     return false;
 }
 
-function is_knight(ind) {
-    if(position[ind] === CHESS_PIECE.BLACK_KNIGHT || position[ind] === CHESS_PIECE.WHITE_KNIGHT) {
+function is_knight(position, ind) {
+    if(position[ind] == CHESS_PIECE.BLACK_KNIGHT || position[ind] == CHESS_PIECE.WHITE_KNIGHT) {
         return true;
     }
     return false;
 }
 
-function is_bishop(ind) {
-    if(position[ind] === CHESS_PIECE.BLACK_BISHOP || position[ind] === CHESS_PIECE.WHITE_BISHOP) {
+function is_bishop(position, ind) {
+    if(position[ind] == CHESS_PIECE.BLACK_BISHOP || position[ind] == CHESS_PIECE.WHITE_BISHOP) {
         return true;
     }
     return false;
 }
 
-function is_rook(ind) {
-    if(position[ind] === CHESS_PIECE.BLACK_ROOK || position[ind] === CHESS_PIECE.WHITE_ROOK) {
+function is_rook(position, ind) {
+    if(position[ind] == CHESS_PIECE.BLACK_ROOK || position[ind] == CHESS_PIECE.WHITE_ROOK) {
         return true;
     }
     return false;
 }
 
-function is_queen(ind) {
-    if(position[ind] === CHESS_PIECE.BLACK_QUEEN || position[ind] === CHESS_PIECE.WHITE_QUEEN) {
+function is_queen(position, ind) {
+    if(position[ind] == CHESS_PIECE.BLACK_QUEEN || position[ind] == CHESS_PIECE.WHITE_QUEEN) {
         return true;
     }
     return false;
 }
 
-function is_king(ind) {
-    if(position[ind] === CHESS_PIECE.BLACK_KING || position[ind] === CHESS_PIECE.WHITE_KING) {
+function is_king(position, ind) {
+    if(position[ind] == CHESS_PIECE.BLACK_KING || position[ind] == CHESS_PIECE.WHITE_KING) {
         return true;
     }
     return false;
 }
 
-function is_empty(ind) {
-    if(position[ind] === CHESS_PIECE.NOTHING || position[ind] === CHESS_PIECE.NOTHING) {
+function is_empty(position, ind) {
+    if(position[ind] == CHESS_PIECE.NOTHING || position[ind] == CHESS_PIECE.NOTHING) {
         return true;
     }
     return false;
