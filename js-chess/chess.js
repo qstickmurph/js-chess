@@ -28,6 +28,7 @@ let turn = COLOR.WHITE;
 let game_over = false;
 let board_flipped = false;
 let selected_ind = -1;
+let last_played_move = [];
 let notations = [];
 
 // Global Variables - DOM
@@ -119,6 +120,9 @@ function show_selected_ind() {
     }
     if(selected_ind >= 0) {
         chess_squares[selected_ind].classList.add("selected");
+    }
+    for(let i = 0; i < last_played_move.length; i++) {
+        chess_squares[last_played_move[i]].classList.add("selected");
     }
 }
 
@@ -215,6 +219,7 @@ function move_piece(position, orig, dest, turn) {
             alert("Check!");
         }
         swap_turn();
+        last_played_move = [orig, dest];
     }
 
     selected_ind = -1;
