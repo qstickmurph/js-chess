@@ -90,15 +90,13 @@ function add_button_listeners() {
 
 // Functions - Rendering
 function render() {
-    show_position();
-    show_selected_ind();
-    show_hints();
+    show_board();
     show_notations();
 }
 
-function show_position() {
+function show_board() {
     for(let i = 0; i < chess_squares.length; i++) {
-        curr_piece= current_position[i]
+        curr_piece = current_position[i]
         curr_square = chess_squares[i]
 
         while(curr_square.firstChild) {
@@ -114,9 +112,7 @@ function show_position() {
         icon.setAttribute("class", "piece-icon");
         curr_square.appendChild(icon);
     }
-}
 
-function show_selected_ind() {
     for(let i = 0; i < chess_squares.length; i++) {
         chess_squares[i].classList.remove("selected");
     }
@@ -126,10 +122,13 @@ function show_selected_ind() {
     for(let i = 0; i < last_played_move.length; i++) {
         chess_squares[last_played_move[i]].classList.add("selected");
     }
-}
 
-function show_hints() {
-
+    let hint_moves = get_legal_moves(current_position, selected_ind, current_turn);
+    for(let i = 0; i < hint_moves.length; i++) {
+        hint_dot = document.createElement("span");
+        hint_dot.setAttribute("class", "hint-dot");
+        chess_squares[hint_moves[i]].appendChild(hint_dot);
+    }
 }
 
 function show_notations() {

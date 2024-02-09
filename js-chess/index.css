@@ -82,6 +82,7 @@ body {
     aspect-ratio: 1 / 1;
     overflow: hidden;
     padding: auto auto;
+    position: relative;
 }
 
 .chess-square.dark{
@@ -105,10 +106,26 @@ body {
 .chess-square .piece-icon {
     height: 100%;
     width: 100%;
+    margin: auto auto;
     user-drag: none;
     -webkit-user-drag: none;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
+}
+
+.hint-dot {
+    height: 25%;
+    padding: auto;
+    aspect-ratio: 1 / 1;
+    margin: auto auto;
+    background-color: #bbb;
+    opacity: 50%;
+    border-radius: 50%;
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
