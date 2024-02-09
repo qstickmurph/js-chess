@@ -38,7 +38,7 @@ let chess_board;
 let chess_squares = [];
 let reset_button;
 let flip_button;
-let draw_button;
+//let draw_button;
 let resign_button;
 let notation_table;
 
@@ -68,7 +68,7 @@ function get_html_elements() {
     }
     reset_button = document.getElementsByClassName("reset-game-button")[0];
     flip_button = document.getElementsByClassName("flip-board-button")[0];
-    draw_button = document.getElementsByClassName("offer-draw-button")[0];
+    //draw_button = document.getElementsByClassName("offer-draw-button")[0];
     resign_button = document.getElementsByClassName("resign-button")[0];
 
     notation_table = document.getElementsByClassName("chess-notation")[0];
@@ -84,7 +84,7 @@ function add_square_listeners() {
 function add_button_listeners() {
     reset_button.addEventListener("click", reset_game);
     flip_button.addEventListener("click", flip_board);
-    draw_button.addEventListener("click", offer_draw);
+    //draw_button.addEventListener("click", offer_draw);
     resign_button.addEventListener("click", resign);
 }
 
