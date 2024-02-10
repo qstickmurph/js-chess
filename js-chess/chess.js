@@ -30,6 +30,8 @@ let board_flipped = false;
 let selected_ind = -1;
 let last_played_move = [];
 let notations = [];
+let promoting = false;
+let promoting_ind = -1;
 let black_king_moved = false;
 let white_king_moved = false;
 
@@ -41,13 +43,17 @@ let flip_button;
 //let draw_button;
 let resign_button;
 let notation_table;
+let pawn_promotion_table;
+let pawn_promotion_knight;
+let pawn_promotion_bishop;
+let pawn_promotion_rook;
+let pawn_promotion_queen;
 
 // Functions - Inits
 function init() {
     get_html_elements();
     reset_game();
-    add_square_listeners();
-    add_button_listeners();
+    add_listeners();
     render();
 }
 
@@ -72,20 +78,29 @@ function get_html_elements() {
     resign_button = document.getElementsByClassName("resign-button")[0];
 
     notation_table = document.getElementsByClassName("chess-notation")[0];
+
+    pawn_promotion_table = document.getElementsByClassName("pawn-promotion-container")[0];
+    pawn_promotion_knight = document.getElementsByClassName("pawn-promotion-icon knight")[0];
+    pawn_promotion_bishop = document.getElementsByClassName("pawn-promotion-icon bishop")[0];
+    pawn_promotion_rook = document.getElementsByClassName("pawn-promotion-icon rook")[0];
+    pawn_promotion_queen = document.getElementsByClassName("pawn-promotion-icon queen")[0];
 }
 
-function add_square_listeners() {
+function add_listeners() {
     for(let i = 0; i < chess_squares.length; i++) {
         chess_squares[i].addEventListener("click", on_click_square);
         chess_squares[i].addEventListener("contextmenu", on_click_square);
     }
-}
 
-function add_button_listeners() {
     reset_button.addEventListener("click", reset_game);
     flip_button.addEventListener("click", flip_board);
     //draw_button.addEventListener("click", offer_draw);
     resign_button.addEventListener("click", resign);
+
+    pawn_promotion_knight.addEventListener("click", on_click_promotion_icon);
+    pawn_promotion_bishop.addEventListener("click", on_click_promotion_icon);
+    pawn_promotion_rook.addEventListener("click", on_click_promotion_icon);
+    pawn_promotion_queen.addEventListener("click", on_click_promotion_icon);
 }
 
 // Functions - Rendering
@@ -158,6 +173,10 @@ function show_notations() {
 
 // Functions - Event Listeners
 function on_click_square(e) {
+    if(promoting) { // Block moves while promoting
+        return;
+    }
+
     if(e.button === 2) { //right click to hl a square
         if(e.currentTarget.classList.contains("hl")) {
             e.currentTarget.classList.remove("hl");
@@ -173,6 +192,43 @@ function on_click_square(e) {
             current_position = move_piece(current_position, selected_ind, ind, current_turn);
         }
     }
+
+    render();
+}
+
+function on_click_promotion_icon(e) {
+    let promotion_piece;
+    if(current_turn == COLOR.WHITE) {
+        switch(e.currentTarget.classList[1]) {
+            case "knight": promotion_piece = CHESS_PIECE.WHITE_KNIGHT; break;
+            case "bishop": promotion_piece = CHESS_PIECE.WHITE_BISHOP; break;
+            case "rook": promotion_piece = CHESS_PIECE.WHITE_ROOK ; break;
+            case "queen": promotion_piece = CHESS_PIECE.WHITE_QUEEN ; break;
+        }
+    } else {
+        switch(e.currentTarget.classList[1]) {
+            case "knight": promotion_piece = CHESS_PIECE.BLACK_KNIGHT; break;
+            case "bishop": promotion_piece = CHESS_PIECE.BLACK_BISHOP; break;
+            case "rook": promotion_piece = CHESS_PIECE.BLACK_ROOK ; break;
+            case "queen": promotion_piece = CHESS_PIECE.BLACK_QUEEN ; break;
+        }
+    }
+    current_position[promoting_ind] = promotion_piece;
+
+    enemy_turn = (current_turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+    if(is_check(new_position, enemy_turn)){
+        if(is_checkmate(new_position, enemy_turn)) {
+            winning_color = (current_turn === COLOR.WHITE) ? "White" : "Black";
+            alert(`Checkmate! ${winning_color} wins!`);
+            game_over = true;
+            return new_position;
+        }
+        alert("Check!");
+    }
+    swap_turn();
+
+    promoting = false;
+    pawn_promotion_table.style.visibility = "hidden";
 
     render();
 }
@@ -208,17 +264,24 @@ function move_piece(position, orig, dest, turn) {
         add_notation(new_notation);
         new_position[dest] = new_position[orig];
         new_position[orig] = CHESS_PIECE.NOTHING;
-        enemy_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
-        if(is_check(new_position, enemy_turn)){
-            if(is_checkmate(new_position, enemy_turn)) {
-                winning_color = (turn === COLOR.WHITE) ? "White" : "Black";
-                alert(`Checkmate! ${winning_color} wins!`);
-                game_over = true;
-                return new_position;
-            }
-            alert("Check!");
+
+        // Check for pawn promotion
+        if(is_pawn_promote(new_position, dest, turn)) {
+            promote_pawn(new_position, dest, turn);
         }
-        swap_turn();
+        else { // Otherwise proceed
+            enemy_turn = (turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+            if(is_check(new_position, enemy_turn)){
+                if(is_checkmate(new_position, enemy_turn)) {
+                    winning_color = (turn === COLOR.WHITE) ? "White" : "Black";
+                    alert(`Checkmate! ${winning_color} wins!`);
+                    game_over = true;
+                    return new_position;
+                }
+                alert("Check!");
+            }
+            swap_turn();
+        }
         last_played_move = [orig, dest];
     }
 
@@ -262,7 +325,7 @@ function offer_draw() {
 }
 
 function resign() {
-    winning_color = (turn === COLOR.WHITE) ? "Black" : "White";
+    winning_color = (current_turn === COLOR.WHITE) ? "Black" : "White";
     alert(`Game Over! ${winning_color} wins!`);
     reset_game();
 }
@@ -527,6 +590,13 @@ function add_notation(text) {
     render();
 }
 
+function promote_pawn(position, ind) {
+    promoting_ind = ind
+    promoting = true;
+
+    pawn_promotion_table.style.visibility = "visible";
+}
+
 function pawn_moves(position, ind, color) {
     let moves = [];
     let ydir = (color == COLOR.WHITE) ? -1 : 1
@@ -743,6 +813,17 @@ function is_checkmate(position, turn) {
 function is_legal_move(position, orig, dest, turn) {
     return get_legal_moves(position, orig, turn).includes(dest);
 }
+
+function is_pawn_promote(position, ind, turn) {
+    if(! is_my_piece(position, ind, turn) || ! is_pawn(position, ind)) {
+        return false;
+    } else if(turn == COLOR.WHITE) {
+        return (ind >=0 && ind <= 8);
+    } else {
+        return (ind >=56 && ind <= 64);
+    }
+}
+
 
 function is_my_piece(position, ind, turn) {
     if(ind < 0 || ind > 63) {
