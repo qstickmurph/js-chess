@@ -7,11 +7,7 @@
     </head>
     <body onload="init()">
         <div class="chess-container">
-            <div class="chess-buttons">
-                <button class="reset-game-button">Reset Game</button>
-                <button class="flip-board-button">Flip Board</button>
-                <!-- <button class="offer-draw-button">Offer Draw</button> -->
-                <button class="resign-button">Resign</button>
+            <div class="left-spacer">
             </div>
             <div class="chess-board" oncontextmenu="return false;">
                 <div class="chess-rank 1">
@@ -107,9 +103,14 @@
             <div class="chess-notation-container">
                 <div class="chess-notation">
                 </div>
-                <div class="chess-notation-buttons">
-                    <button>&lt;</button>
-                    <button>&gt;</button>
+                <div class="chess-buttons">
+                    <button class="backwards-button">&lt;</button>
+                    <button class="forewards-button">&gt;</button>
+                    <div class="button-spacer"></div>
+                    <button class="reset-game-button">Reset Game</button>
+                    <button class="flip-board-button">Flip Board</button>
+                    <!-- <button class="offer-draw-button">Offer Draw</button> -->
+                    <button class="resign-button">Resign</button>
                 </div>
             </div>
         </div>
