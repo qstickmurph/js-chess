@@ -32,8 +32,12 @@ let last_played_move = [];
 let notations = [];
 let promoting = false;
 let promoting_ind = -1;
-let black_king_moved = false;
 let white_king_moved = false;
+let white_a_rook_moved = false;
+let white_h_rook_moved = false;
+let black_king_moved = false;
+let black_a_rook_moved = false;
+let black_h_rook_moved = false;
 
 // Global Variables - DOM
 let chess_board;
@@ -271,8 +275,40 @@ function move_piece(position, orig, dest, turn) {
     if(is_legal_move(new_position, orig, dest, turn)) {
         new_notation = generate_notation(new_position, orig, dest, turn);
         add_notation(new_notation);
-        new_position[dest] = new_position[orig];
-        new_position[orig] = CHESS_PIECE.NOTHING;
+
+        if(is_castle_move(position, orig, dest, turn)) {
+            switch(dest) {
+                case 2: 
+                    new_position[dest] = CHESS_PIECE.BLACK_KING;
+                    new_position[3]    = CHESS_PIECE.BLACK_ROOK;
+                    new_position[orig] = CHESS_PIECE.NOTHING;
+                    new_position[0]    = CHESS_PIECE.NOTHING;
+                    break;
+                case 6: 
+                    new_position[dest] = CHESS_PIECE.BLACK_KING;
+                    new_position[5]    = CHESS_PIECE.BLACK_ROOK;
+                    new_position[orig] = CHESS_PIECE.NOTHING;
+                    new_position[7]    = CHESS_PIECE.NOTHING;
+                    break;
+                case 58: 
+                    new_position[dest] = CHESS_PIECE.WHITE_KING;
+                    new_position[59]   = CHESS_PIECE.WHITE_ROOK;
+                    new_position[orig] = CHESS_PIECE.NOTHING;
+                    new_position[56]   = CHESS_PIECE.NOTHING;
+                    break;
+                case 62: 
+                    new_position[dest] = CHESS_PIECE.WHITE_KING;
+                    new_position[61]   = CHESS_PIECE.WHITE_ROOK;
+                    new_position[orig] = CHESS_PIECE.NOTHING;
+                    new_position[63]   = CHESS_PIECE.NOTHING;
+                    break;
+            }
+        } else {
+            new_position[dest] = new_position[orig];
+            new_position[orig] = CHESS_PIECE.NOTHING;
+        }
+
+        // TODO: en-passant
 
         // Check for pawn promotion
         if(is_pawn_promote(new_position, dest, turn)) {
@@ -292,6 +328,26 @@ function move_piece(position, orig, dest, turn) {
             swap_turn();
         }
         last_played_move = [orig, dest];
+
+        // Set has_moved bools
+        if(orig == 0) {
+            black_a_rook_moved = true;
+        }
+        if(orig == 4) {
+            black_king_moved = true;
+        }
+        if(orig == 7) {
+            black_h_rook_moved = true;
+        }
+        if(orig == 56) {
+            white_a_rook_moved = true;
+        }
+        if(orig == 60) {
+            white_king_moved = true;
+        }
+        if(orig == 63) {
+            white_h_rook_moved = true;
+        }
     }
 
     selected_ind = -1;
@@ -326,6 +382,15 @@ function reset_game() {
     selected_ind = -1;
     last_played_move = [];
     notations = [];
+    promoting = false;
+    promoting_ind = -1;
+    white_king_moved = false;
+    white_a_rook_moved = false;
+    white_h_rook_move = false;
+    black_king_moved = false;
+    black_a_rook_moved = false;
+    black_h_rook_moved = false;
+
     render();
 }
 
@@ -379,6 +444,15 @@ function get_legal_moves(position, ind, turn) {
     // King
     if(is_king(position, ind)) {
         all_moves = king_moves(position, ind);
+        // Add castling king and queenside
+        if(can_castle_kingside(position, turn)) {
+            castle_ind = (turn == COLOR.WHITE) ? 62 : 6;
+            all_moves.push(castle_ind);
+        }
+        if(can_castle_queenside(position, turn)) {
+            castle_ind = (turn == COLOR.WHITE) ? 58 : 2;
+            all_moves.push(castle_ind);
+        }
     }
 
     // Remove illegal moves
@@ -590,8 +664,18 @@ function generate_notation(position, orig, dest, turn) {
         }
     }
 
-    let notation = piece_string + orig_string + captures_string + dest_string + check_string;
-    return notation;
+
+    if(is_castle_move(position, orig, dest, turn)) {
+        switch(dest) {
+            case 6:
+            case 62:
+                return "O-O" + check_string;
+            case 2:
+            case 58:
+                return "O-O-O" + check_string;
+        }
+    } 
+    return piece_string + orig_string + captures_string + dest_string + check_string;
 }
 
 function add_notation(text) {
@@ -833,6 +917,90 @@ function is_pawn_promote(position, ind, turn) {
     }
 }
 
+function can_castle_kingside(position, turn) {
+    if(turn == COLOR.WHITE && (white_king_moved || white_h_rook_moved)) {
+        return false;
+    }
+    if(turn == COLOR.BLACK && (black_king_moved || black_h_rook_moved)) {
+        return false;
+    }
+
+
+    // Spaces between rook and king empty
+    if(turn == COLOR.WHITE && ! (is_empty(position, 61) && is_empty(position, 62))) {
+        return false;
+    }
+    if(turn == COLOR.BLACK && ! (is_empty(position, 5) && is_empty(position, 6))) {
+        return false;
+    }
+
+    king_ind = (turn == COLOR.WHITE) ? 60 : 4;
+    // Spaces king will travel unchecked 
+    if(is_check(position, turn)) {
+        return false;
+    }
+    for(let mvmt = 1; mvmt <= 2; mvmt++) {
+        dest = translate(king_ind, mvmt, 0);
+        proto_position = position.concat();
+        proto_position[dest] = proto_position[king_ind];
+        proto_position[king_ind] = CHESS_PIECE.NOTHING;
+        if(is_check(proto_position, turn)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function can_castle_queenside(position, turn) {
+    if(turn == COLOR.WHITE && (white_king_moved || white_a_rook_moved)) {
+        return false;
+    }
+    if(turn == COLOR.BLACK && (black_king_moved || black_a_rook_moved)) {
+        return false;
+    }
+
+
+    // Spaces between rook and king empty
+    if(turn == COLOR.WHITE && ! (is_empty(position, 59) && is_empty(position, 58))) {
+        return false;
+    }
+    if(turn == COLOR.BLACK && ! (is_empty(position, 3) && is_empty(position, 2))) {
+        return false;
+    }
+
+    king_ind = (turn == COLOR.WHITE) ? 60 : 4;
+    // Spaces king will travel unchecked 
+    if(is_check(position, turn)) {
+        return false;
+    }
+    for(let mvmt = -1; mvmt >= -3; mvmt--) {
+        dest = translate(king_ind, mvmt, 0);
+        proto_position = position.concat();
+        proto_position[dest] = proto_position[king_ind];
+        proto_position[king_ind] = CHESS_PIECE.NOTHING;
+        if(is_check(proto_position, turn)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function is_castle_move(position, orig, dest, turn) {
+    if(can_castle_kingside(position, turn) && (
+           (turn == COLOR.WHITE && orig == 60 && dest == 62)
+        || (turn == COLOR.BLACK && orig ==  4 && dest ==  6))) {
+        return true;
+    }
+    if(can_castle_queenside(position, turn) && (
+           (turn == COLOR.WHITE && orig == 60 && dest == 58)
+        || (turn == COLOR.BLACK && orig ==  4 && dest ==  2))) {
+        return true;
+    }
+
+    return false;
+}
 
 function is_my_piece(position, ind, turn) {
     if(ind < 0 || ind > 63) {
