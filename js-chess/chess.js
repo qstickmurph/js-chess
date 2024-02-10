@@ -215,6 +215,15 @@ function on_click_promotion_icon(e) {
     }
     current_position[promoting_ind] = promotion_piece;
 
+    notation_char = ""
+    switch(e.currentTarget.classList[1]) {
+        case "knight": notation_char = "N";
+        case "bishop": notation_char = "B";
+        case "rook": notation_char = "R";
+        case "queen": notation_char = "Q";
+    }
+    notations[notations.length - 1] += "=" + notation_char;
+
     enemy_turn = (current_turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
     if(is_check(new_position, enemy_turn)){
         if(is_checkmate(new_position, enemy_turn)) {
