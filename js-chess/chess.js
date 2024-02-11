@@ -38,6 +38,7 @@ let white_h_rook_moved = false;
 let black_king_moved = false;
 let black_a_rook_moved = false;
 let black_h_rook_moved = false;
+let en_passantable = -1;
 
 // Global Variables - DOM
 let chess_board;
@@ -308,7 +309,24 @@ function move_piece(position, orig, dest, turn) {
             new_position[orig] = CHESS_PIECE.NOTHING;
         }
 
-        // TODO: en-passant
+        // Remove enemy piece on en-passant
+        if(is_en_passant(position, orig, dest, turn)) {
+            dead_pawn_ind = (turn == COLOR.WHITE) ? translate(dest, 0, 1) : translate(dest, 0, -1);
+            new_position[dead_pawn_ind] = CHESS_PIECE.NOTHING;
+        }
+
+        // Clears en_passantable
+        en_passantable = -1;
+
+        // Makes pawn en-passantable on double move
+        if(is_pawn(position, orig)) {
+            if(turn == COLOR.WHITE && dest == translate(orig, 0, -2)) {
+                en_passantable = translate(orig, 0, -1);
+            }
+            if(turn == COLOR.BLACK && dest == translate(orig, 0,  2)) {
+                en_passantable = translate(orig, 0, 1);
+            }
+        }
 
         // Check for pawn promotion
         if(is_pawn_promote(new_position, dest, turn)) {
@@ -536,7 +554,7 @@ function generate_notation(position, orig, dest, turn) {
 
     let orig_string = "";
     if(is_pawn(position, orig)) {
-        if(! is_empty(position,dest)) {
+        if(! is_empty(position,dest) || is_en_passant(position, orig, dest, turn)) {
             orig_string = letters[orig_pos[0]];
         }
     } else if(is_knight(position, orig)) {
@@ -646,7 +664,7 @@ function generate_notation(position, orig, dest, turn) {
     }
 
     let captures_string = ""
-    if(! is_empty(position, dest)) {
+    if(! is_empty(position, dest) || is_en_passant(position, orig, dest, turn)) {
         captures_string = "x";
     }
 
@@ -706,10 +724,10 @@ function pawn_moves(position, ind, color) {
     }
     
     // Diagonal Moves
-    if(is_enemy_piece(position, translate(ind, 1, ydir), color)) {
+    if(is_enemy_piece(position, translate(ind, 1, ydir), color) || is_en_passant(position, ind, translate(ind, 1, ydir), color)) {
         moves.push(translate(ind, 1, ydir));
     }
-    if(is_enemy_piece(position, translate(ind, -1, ydir), color)) {
+    if(is_enemy_piece(position, translate(ind, -1, ydir), color) || is_en_passant(position, ind, translate(ind, -1, ydir), color)) {
         moves.push(translate(ind, -1, ydir));
     }
    
@@ -915,6 +933,16 @@ function is_pawn_promote(position, ind, turn) {
     } else {
         return (ind >=56 && ind <= 64);
     }
+}
+
+function is_en_passant(position, orig, dest, turn) {
+    if(is_my_piece(position, orig, turn) && is_pawn(position, orig)) {
+        if(en_passantable == dest) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function can_castle_kingside(position, turn) {
