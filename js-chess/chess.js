@@ -421,8 +421,7 @@ function reset_turn() {
 }
 
 function flip_board() {
-    board_flipped = ! board_flipped;
-    render();
+    chess_board.classList.toggle("flipped");
 }
 
 function reset_game() {

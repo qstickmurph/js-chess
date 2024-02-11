@@ -77,6 +77,14 @@ body {
     position: relative;
 }
 
+.chess-board.flipped {
+    rotate: 180deg;
+}
+
+.chess-board.flipped .chess-square .piece-icon {
+    rotate: 180deg;
+}
+
 .chess-rank {
     width: 100%;
     display: grid;
