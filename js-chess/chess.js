@@ -46,7 +46,8 @@ let chess_board;
 let chess_squares = [];
 let forwards_button;
 let backwards_button;
-let reset_button;
+let reset_turn_button;
+let reset_game_button;
 let flip_button;
 //let draw_button;
 let resign_button;
@@ -82,7 +83,8 @@ function get_html_elements() {
     }
     forwards_button = document.getElementsByClassName("forwards-button")[0];
     backwards_button = document.getElementsByClassName("backwards-button")[0];
-    reset_button = document.getElementsByClassName("reset-game-button")[0];
+    reset_turn_button = document.getElementsByClassName("reset-turn-button")[0];
+    reset_game_button = document.getElementsByClassName("reset-game-button")[0];
     flip_button = document.getElementsByClassName("flip-board-button")[0];
     //draw_button = document.getElementsByClassName("offer-draw-button")[0];
     resign_button = document.getElementsByClassName("resign-button")[0];
@@ -104,7 +106,8 @@ function add_listeners() {
 
     forwards_button.addEventListener("click", change_turn_forwards);
     backwards_button.addEventListener("click", change_turn_backwards);
-    reset_button.addEventListener("click", reset_game);
+    reset_turn_button.addEventListener("click", reset_turn);
+    reset_game_button.addEventListener("click", reset_game);
     flip_button.addEventListener("click", flip_board);
     //draw_button.addEventListener("click", offer_draw);
     resign_button.addEventListener("click", resign);
@@ -408,6 +411,12 @@ function change_turn_backwards() {
     if(shown_turn_num > 0) {
         shown_turn_num--;
     }
+
+    render();
+}
+
+function reset_turn() {
+    shown_turn_num = current_turn_num;
 
     render();
 }

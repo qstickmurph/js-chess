@@ -56,6 +56,7 @@ body {
 }
 
 .chess-buttons button {
+    font-size: 24pt;
     height: 100%;
 }
 
