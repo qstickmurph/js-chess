@@ -23,12 +23,13 @@ const COLOR = Object.freeze({
 // Global Variables - Data
 const letters = "abcdefgh".split("");
 const nums = "87654321".split("");
-let current_position;
-let current_turn = COLOR.WHITE;
+let position_history = [];
+let current_turn_num = 0;
+let shown_turn_num = 0;
 let game_over = false;
 let board_flipped = false;
 let selected_ind = -1;
-let last_played_move = [];
+let last_played_move_history = [[]];
 let notations = [];
 let promoting = false;
 let promoting_ind = -1;
@@ -43,6 +44,8 @@ let en_passantable = -1;
 // Global Variables - DOM
 let chess_board;
 let chess_squares = [];
+let forwards_button;
+let backwards_button;
 let reset_button;
 let flip_button;
 //let draw_button;
@@ -68,7 +71,7 @@ function start_chess_game(){
 
 function stop_chess_game(){
 
-}
+} 
 
 function get_html_elements() {
     chess_board = document.getElementsByClassName("chess-board")[0];
@@ -77,6 +80,8 @@ function get_html_elements() {
         let rank_element = chess_board.children[i];
         chess_squares = chess_squares.concat(Array.from(rank_element.children));
     }
+    forwards_button = document.getElementsByClassName("forwards-button")[0];
+    backwards_button = document.getElementsByClassName("backwards-button")[0];
     reset_button = document.getElementsByClassName("reset-game-button")[0];
     flip_button = document.getElementsByClassName("flip-board-button")[0];
     //draw_button = document.getElementsByClassName("offer-draw-button")[0];
@@ -97,10 +102,13 @@ function add_listeners() {
         chess_squares[i].addEventListener("contextmenu", on_click_square);
     }
 
+    forwards_button.addEventListener("click", change_turn_forwards);
+    backwards_button.addEventListener("click", change_turn_backwards);
     reset_button.addEventListener("click", reset_game);
     flip_button.addEventListener("click", flip_board);
     //draw_button.addEventListener("click", offer_draw);
     resign_button.addEventListener("click", resign);
+    
 
     pawn_promotion_knight.addEventListener("click", on_click_promotion_icon);
     pawn_promotion_bishop.addEventListener("click", on_click_promotion_icon);
@@ -115,8 +123,12 @@ function render() {
 }
 
 function show_board() {
+    let shown_position = position_history[shown_turn_num];
+    let shown_turn = (shown_turn_num % 2 == 0) ? COLOR.WHITE : COLOR.BLACK;
+    let last_played_move = last_played_move_history[shown_turn_num];
+
     for(let i = 0; i < chess_squares.length; i++) {
-        curr_piece = current_position[i]
+        curr_piece = shown_position[i]
         curr_square = chess_squares[i]
 
         while(curr_square.firstChild) {
@@ -139,11 +151,12 @@ function show_board() {
     if(selected_ind >= 0) {
         chess_squares[selected_ind].classList.add("selected");
     }
+
     for(let i = 0; i < last_played_move.length; i++) {
         chess_squares[last_played_move[i]].classList.add("selected");
     }
 
-    let hint_moves = get_legal_moves(current_position, selected_ind, current_turn);
+    let hint_moves = get_legal_moves(shown_position, selected_ind, shown_turn);
     for(let i = 0; i < hint_moves.length; i++) {
         hint_dot = document.createElement("span");
         hint_dot.setAttribute("class", "hint-dot");
@@ -181,6 +194,7 @@ function on_click_square(e) {
     if(promoting) { // Block moves while promoting
         return;
     }
+    let current_turn = (current_turn_num % 2 == 0) ? COLOR.WHITE : COLOR.BLACK;
 
     if(e.button === 2) { //right click to hl a square
         if(e.currentTarget.classList.contains("hl")) {
@@ -188,13 +202,17 @@ function on_click_square(e) {
         } else {
             e.currentTarget.classList.add("hl");
         }
-    }else if(! game_over) { //left click to select a piece
+    }else if(! game_over && shown_turn_num == current_turn_num) { //left click to select a piece
+        let current_position = position_history[current_turn_num];
         let ind = chess_squares.indexOf(e.currentTarget);
 
         if(is_my_piece(current_position, ind, current_turn)) { // if piece is same color as current turn, select it
             selected_ind = ind;
         } else {// otherwise, attempt to move the selected piece
-            current_position = move_piece(current_position, selected_ind, ind, current_turn);
+            let new_position = move_piece(current_position, selected_ind, ind, current_turn);
+            if(new_position != -1) {
+                position_history.push(new_position);
+            }
         }
     }
 
@@ -203,6 +221,8 @@ function on_click_square(e) {
 
 function on_click_promotion_icon(e) {
     let promotion_piece;
+    let current_turn = (current_turn_num % 2 == 0) ? COLOR.WHITE : COLOR.BLACK;
+    let current_position = position_history[current_turn_num];
     if(current_turn == COLOR.WHITE) {
         switch(e.currentTarget.classList[1]) {
             case "knight": promotion_piece = CHESS_PIECE.WHITE_KNIGHT; break;
@@ -239,7 +259,9 @@ function on_click_promotion_icon(e) {
         }
         alert("Check!");
     }
-    swap_turn();
+
+    current_turn_num++;
+    shown_turn_num++;
 
     promoting = false;
     pawn_promotion_table.style.visibility = "hidden";
@@ -343,9 +365,10 @@ function move_piece(position, orig, dest, turn) {
                 }
                 alert("Check!");
             }
-            swap_turn();
+            current_turn_num++;
+            shown_turn_num++;
         }
-        last_played_move = [orig, dest];
+        last_played_move_history.push([orig, dest]);
 
         // Set has_moved bools
         if(orig == 0) {
@@ -373,8 +396,20 @@ function move_piece(position, orig, dest, turn) {
     return new_position;
 }
 
-function swap_turn() {
-    current_turn = (current_turn === COLOR.WHITE) ? COLOR.BLACK : COLOR.WHITE;
+function change_turn_forwards() {
+    if(shown_turn_num < current_turn_num) {
+        shown_turn_num++;
+    }
+
+    render();
+}
+
+function change_turn_backwards() {
+    if(shown_turn_num > 0) {
+        shown_turn_num--;
+    }
+
+    render();
 }
 
 function flip_board() {
@@ -383,8 +418,8 @@ function flip_board() {
 }
 
 function reset_game() {
-    current_position = 
-    [
+    position_history = 
+    [[
         CHESS_PIECE.BLACK_ROOK, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_QUEEN, CHESS_PIECE.BLACK_KING, CHESS_PIECE.BLACK_BISHOP, CHESS_PIECE.BLACK_KNIGHT, CHESS_PIECE.BLACK_ROOK,
         CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,  CHESS_PIECE.BLACK_PAWN, CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN,   CHESS_PIECE.BLACK_PAWN, 
         CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
@@ -393,12 +428,13 @@ function reset_game() {
         CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,     CHESS_PIECE.NOTHING,    CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,      CHESS_PIECE.NOTHING,
         CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,  CHESS_PIECE.WHITE_PAWN, CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,   CHESS_PIECE.WHITE_PAWN,
         CHESS_PIECE.WHITE_ROOK, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_QUEEN, CHESS_PIECE.WHITE_KING, CHESS_PIECE.WHITE_BISHOP, CHESS_PIECE.WHITE_KNIGHT, CHESS_PIECE.WHITE_ROOK
-    ];
-    current_turn = COLOR.WHITE;
+    ]];
+    current_turn_num = 0;
+    shown_turn_num = 0;
     board_flipped = false;
     game_over = false;
     selected_ind = -1;
-    last_played_move = [];
+    last_played_move_history = [[]];
     notations = [];
     promoting = false;
     promoting_ind = -1;
