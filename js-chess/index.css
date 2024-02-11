@@ -45,6 +45,13 @@ body {
 .chess-notation p {
     margin: 0;
     height: 1lh;
+    width: fit-content;
+    padding: 0px 5px;
+    border-radius: 5px;
+}
+
+.chess-notation .current-turn {
+    background-color: #eee;
 }
 
 .chess-buttons {

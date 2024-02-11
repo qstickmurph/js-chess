@@ -173,21 +173,20 @@ function show_notations() {
     }
 
     // Put all notations in notation table
-    every_other = true;
-    move_num = 1;
-    for(let i = 0; i < notations.length; i++) {
-        if(every_other) {
+    for(let i = 1; i <= notations.length; i++) {
+        if(i % 2 == 1) {
             move_num_p = document.createElement("p");
-            move_num_p.innerHTML = move_num + ".";
+            move_num_p.innerHTML = Math.ceil(i / 2) + ".";
             move_num_p.classList.add("notation-move-num");
             notation_table.appendChild(move_num_p);
-            move_num++;
         }
-        every_other = ! every_other;
 
         move_p = document.createElement("p");
-        move_p.innerHTML = notations[i];
+        move_p.innerHTML = notations[i - 1];
         move_p.classList.add("notation-move");
+        if(i == shown_turn_num) {
+            move_p.classList.add("current-turn");
+        }
         notation_table.appendChild(move_p);
     }
 }
