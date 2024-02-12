@@ -291,8 +291,8 @@ function get_icon_file(piece) {
 }
 
 function move_piece(position, orig, dest, turn) {
-    if(orig === -1 || game_over) {
-        return position;
+    if(orig == -1 || game_over) {
+        return -1;
     }
 
     new_position = position.concat();
@@ -391,6 +391,8 @@ function move_piece(position, orig, dest, turn) {
         if(orig == 63) {
             white_h_rook_moved = true;
         }
+    } else {
+        return -1;
     }
 
     selected_ind = -1;
