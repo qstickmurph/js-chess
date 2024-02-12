@@ -1,8 +1,18 @@
 :root {
-    --dark-bg: #964d22;
-    --light-bg: #eedc97;
-    --hl-bg: #ff4d22;
-    --selected-bg: #ddc932;
+    --bg-color: #282828;
+    --bg-2-color: #504945;
+    --bg-3-color: #665c54;
+    --bg-4-color: #7c6f64;
+    --bg-h-color: #1d2021;
+    --fg-color: #ebdbb2;
+    --fg-2-color: #d5c4a1;
+    --fg-3-color: #bdae93;
+    --dark-square: #7c6f64;
+    --light-square: #ebdbb2;
+    --selected-light-square: #fabd2f;
+    --selected-dark-square: #d79921;
+    --hl-light-square: #fb4934;
+    --hl-dark-square: #cc241d;
     --light-coords: #eee;
     --dark-coords: #000;
 }
@@ -10,6 +20,8 @@
 body {
     margin: 0px;
     padding: 0px;
+    background-color: var(--bg-color);
+    color: var(--fg-color);
 }
 
 .chess-container {
@@ -51,7 +63,7 @@ body {
 }
 
 .chess-notation .current-turn {
-    background-color: #eee;
+    background-color: var(--bg-2-color);
 }
 
 .chess-buttons {
@@ -63,14 +75,19 @@ body {
 }
 
 .chess-buttons button {
+    background-color: var(--bg-2-color);
+    color: var(--fg-color);
     font-size: 24pt;
     height: 100%;
 }
 
 .chess-board {
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 2*5px);
+    height: calc(100% - 2*5px);
     margin: 0px auto;
+    border-style: solid;
+    border-width: 5px;
+    border-color: var(--bg-h-color);
     display: grid;
     grid-template-columns: auto;
     grid-template-rows: repeat(8, 1fr); 
@@ -105,21 +122,29 @@ body {
 }
 
 .chess-square.dark{
-    background-color: var(--dark-bg);
+    background-color: var(--dark-square);
     color: var(--dark-coords);
 }
 
 .chess-square.light{
-    background-color: var(--light-bg);
+    background-color: var(--light-square);
     color: var(--light-coords);
 }
 
-.chess-square.hl {
-    background-color: var(--hl-bg);
+.chess-square.light.hl{
+    background-color: var(--hl-light-square);
 }
 
-.chess-square.selected {
-    background-color: var(--selected-bg);
+.chess-square.dark.hl {
+    background-color: var(--hl-dark-square);
+}
+
+.chess-square.light.selected {
+    background-color: var(--selected-light-square);
+}
+
+.chess-square.dark.selected {
+    background-color: var(--selected-dark-square);
 }
 
 .chess-square .piece-icon {
@@ -139,7 +164,10 @@ body {
     padding: auto;
     aspect-ratio: 1 / 1;
     margin: auto auto;
-    background-color: #bbb;
+    background-color: var(--fg-3-color);
+    border-style: dashed;
+    border-width: 2px;
+    border-color: var(--bg-h-color);
     opacity: 50%;
     border-radius: 50%;
     display: block;

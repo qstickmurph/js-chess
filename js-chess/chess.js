@@ -151,7 +151,7 @@ function show_board() {
     for(let i = 0; i < chess_squares.length; i++) {
         chess_squares[i].classList.remove("selected");
     }
-    if(selected_ind >= 0) {
+    if(current_turn_num == shown_turn_num && selected_ind >= 0) {
         chess_squares[selected_ind].classList.add("selected");
     }
 
