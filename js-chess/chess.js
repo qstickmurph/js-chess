@@ -462,6 +462,7 @@ function offer_draw() {
 }
 
 function resign() {
+    let current_turn = (current_turn_num % 2 == 0) ? COLOR.WHITE : COLOR.BLACK;
     winning_color = (current_turn === COLOR.WHITE) ? "Black" : "White";
     alert(`Game Over! ${winning_color} wins!`);
     reset_game();
