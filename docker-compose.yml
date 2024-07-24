@@ -1,0 +1,74 @@
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: dockerfiles/proxy.Dockerfile
+    networks:
+      - frontnet
+      - backnet
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - web
+      - api
+
+  web:
+    build:
+      context: .
+      dockerfile: dockerfiles/web.Dockerfile
+    restart: always
+    networks:
+      - frontnet
+    expose:
+      - 80
+      - 443
+
+  api:
+    build:
+      context: .
+      dockerfile: dockerfiles/api.Dockerfile
+    restart: always
+    networks:
+      - backnet
+      - datanet
+    expose:
+      - 80
+      - 443
+
+  cli:
+    build:
+      context: .
+      dockerfile: dockerfiles/cli.Dockerfile
+    restart: always
+    profiles:
+      - cli
+
+  db:
+    build:
+      context: .
+      dockerfile: dockerfiles/db.Dockerfile
+    restart: always
+    networks:
+      - datanet
+    expose:
+      - 5432
+    profiles:
+      - data-layer
+
+  redis:
+    build:
+      context: .
+      dockerfile: dockerfiles/redis.Dockerfile
+    restart: always
+    networks:
+      - datanet 
+    expose:
+      - 6379
+    profiles:
+      - data-layer
+
+networks:
+  frontnet:
+  backnet:
+  datanet:
