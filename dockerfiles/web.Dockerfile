@@ -7,8 +7,11 @@ WORKDIR /app
 # Copy entire front end source code
 COPY ./src/web/ .
 
-# Install requirements and compile application to /app/dist
-RUN npm ci && npm run build
+# Install requirements, test, lint, and compile web application
+RUN npm ci
+RUN npm test
+RUN npm lint
+RUN npm build
 
 # Sever
 FROM nginx:latest as serve
