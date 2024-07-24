@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "outDir": "dist",
+
+        "baseUrl": "./",
+        "moduleResolution": "node",
+        "paths" : {},
+
+        "sourceMap": false,
+
+        "alwaysStrict": true,
+        "allowUnreachableCode": false,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "removeComments": true,
+        "strictNullChecks": true,
+
+        "preserveConstEnums": true
+    },
+    "include": [
+        "./**/*.ts"
+    ],
+    "exclude": [
+        "assets/",
+        "node_modules/",
+        "templates/"
+    ]
+}

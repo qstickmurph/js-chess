@@ -1,0 +1,11 @@
+bin/
+dist/
+obj/
+node_modules/
+
+# API
+src/api/dist
+
+# Web
+node_modules
+src/web/dist

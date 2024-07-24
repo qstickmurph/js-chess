@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/proxy.Dockerfile
+    restart: always
     networks:
       - frontnet
       - backnet

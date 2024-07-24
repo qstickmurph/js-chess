@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "main": "main.ts",
   "scripts": {
-    "build": "echo \"Error: no build script specified\" && exit 1",
-    "test": "echo \"Error: no test script specified\" && exit 1",
-    "lint": "echo \"Error: no lint script specified\" && exit 1",
+    "build": "tsc && cp -r main.html templates/ assets/ dist/",
+    "test": "echo \"No test script specified. Skipping.\" && exit 0",
+    "lint": "echo \"No lint script specified. Skipping.\" && exit 0",
     "tsc": "tsc"
   },
   "author": "",
