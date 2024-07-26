@@ -1,5 +1,5 @@
 # Build
-FROM node:latest as build
+FROM node:latest AS build
 
 # Set working directory
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN npm run lint
 RUN npm run build
 
 # Sever
-FROM nginx:latest as serve
+FROM nginx:latest AS serve
 
 # Copies the nginx conf
 COPY ./config/web/nginx/ /etc/nginx/

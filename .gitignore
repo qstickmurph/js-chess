@@ -1,3 +1,5 @@
-
+src/api/bin/
+src/api/dist/
+src/api/obj/
 src/web/dist/
 node_modules
