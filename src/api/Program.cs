@@ -10,8 +10,10 @@ public class Program {
 
         services.AddControllers();
 
-        services.AddSingleton<IHelloWorldService, HelloWorldService>();
         services.AddSingleton<IGameService, GameService>();
+        services.AddSingleton<IBoardService, BoardService>();
+        services.AddSingleton<IPositionService, PositionService>();
+        services.AddSingleton<IPieceService, PieceService>();
 
         var app = builder.Build();
 

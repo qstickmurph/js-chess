@@ -3,7 +3,21 @@ using JsChessServerApi.Data;
 namespace JsChessServerApi.Services;
 
 public class GameService : IGameService {
+
+    private IBoardService BoardService;
+
+    public GameService(IBoardService boardService) {
+        BoardService = boardService;
+    }
+
+    public Game InitializeGame(Board board) {
+        Game game = new Game();
+        game.Board = game;
+        return game;
+    }
+
     public Game InitializeGame() {
-        return new Game();
+        Board board = BoardService.InitializeBoard();
+        return InitializeGame(board);
     }
 }

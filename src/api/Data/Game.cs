@@ -1,21 +1,9 @@
 namespace JsChessServerApi.Data;
 
 public class Game {
-    public Board Board { get; }
+    public Board Board { get; set; } = new Board();
 
-    public Player CurrentPlayer { get; }
+    public Player CurrentPlayer { get; set; } = Player.White;
 
-    public int MoveNumber { get; }
-
-    public Game() {
-        Board = Board.Initial();
-        CurrentPlayer = Player.White;
-        MoveNumber = 1;
-    }
-
-    public Game(Player currentPlayer, Board board, int moveNumber = 1) {
-        CurrentPlayer = currentPlayer;
-        Board = board;
-        MoveNumber = moveNumber;
-    }
+    public int MoveNumber { get; set; } = 1;
 }
