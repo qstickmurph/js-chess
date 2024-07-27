@@ -11,8 +11,7 @@ public class GameService : IGameService {
     }
 
     public Game InitializeGame(Board board) {
-        Game game = new Game();
-        game.Board = game;
+        Game game = new Game { Board = board };
         return game;
     }
 

@@ -18,6 +18,6 @@ public class GameController : Controller {
     [HttpGet("CreateGame")]
     public IActionResult CreateGame() {
         Game newGame = GameService.InitializeGame();
-        return Ok(newGame);
+        return Json(newGame);
     }
 }

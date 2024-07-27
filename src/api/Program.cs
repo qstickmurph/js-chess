@@ -1,4 +1,6 @@
 using JsChessServerApi.Services;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace JsChessServerApi;
 
@@ -8,7 +10,8 @@ public class Program {
         var services = builder.Services;
         var config = builder.Configuration;
 
-        services.AddControllers();
+        services.AddControllers().AddJsonOptions( options => 
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
 
         services.AddSingleton<IGameService, GameService>();
         services.AddSingleton<IBoardService, BoardService>();
