@@ -14,7 +14,6 @@ public class Program {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
 
         services.AddSingleton<IGameService, GameService>();
-        services.AddSingleton<IBoardService, BoardService>();
         services.AddSingleton<IPositionService, PositionService>();
         services.AddSingleton<IPieceService, PieceService>();
 

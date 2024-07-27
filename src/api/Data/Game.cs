@@ -1,7 +1,7 @@
 namespace JsChessServerApi.Data;
 
 public class Game {
-    public Board Board { get; set; } = new Board();
+    public Piece[] Board { get; set; } = new Piece[64];
 
     public Player CurrentPlayer { get; set; } = Player.White;
 

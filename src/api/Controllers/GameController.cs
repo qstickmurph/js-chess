@@ -18,6 +18,7 @@ public class GameController : Controller {
     [HttpGet("CreateGame")]
     public IActionResult CreateGame() {
         Game newGame = GameService.InitializeGame();
+        Console.WriteLine(Json(newGame).ToString());
         return Json(newGame);
     }
 }
